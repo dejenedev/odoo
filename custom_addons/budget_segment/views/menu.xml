@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root Menu under Accounting/Invoicing -->
+    <menuitem id="menu_budget_segment_root"
+              name="Budget Segments"
+              parent="account.menu_finance_configuration"
+              sequence="50"/>
+
+    <!-- Segment Types -->
+    <menuitem id="menu_budget_segment_type"
+              name="Segment Types"
+              parent="menu_budget_segment_root"
+              action="action_budget_segment_type"
+              sequence="10"/>
+
+    <!-- Segment Values (Non-Economic) -->
+    <menuitem id="menu_budget_segment_value"
+              name="Segment Values"
+              parent="menu_budget_segment_root"
+              action="action_budget_segment_value"
+              sequence="20"/>
+
+    <!-- Segment Values (Economic) -->
+    <menuitem id="menu_budget_segment_value_economic"
+              name="Economic Segment Values"
+              parent="menu_budget_segment_root"
+              action="action_budget_segment_value_economic"
+              sequence="25"/>
+
+    <!-- Code Combinations -->
+    <menuitem id="menu_budget_code_combination"
+              name="Code Combinations"
+              parent="menu_budget_segment_root"
+              action="action_budget_code_combination"
+              sequence="30"/>
+
+</odoo>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Code Combination Form View -->
+    <record id="view_budget_code_combination_form" model="ir.ui.view">
+        <field name="name">budget.code.combination.form</field>
+        <field name="model">budget.code.combination</field>
+        <field name="arch" type="xml">
+            <form string="Budget Code Combination">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="combination_code" string="Code Combination"/>
+                        <h1>
+                            <field name="combination_code" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="segment_summary" nolabel="1" readonly="1" colspan="2"/>
+                    </group>
+                    <notebook>
+                        <page string="Segment Values">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="segment_type_id"
+                                           options="{'no_create': True}"
+                                           string="Segment"/>
+                                    <field name="segment_sequence" optional="hide"/>
+                                    <field name="segment_value_id"
+                                           options="{'no_create': True}"
+                                           string="Value"/>
+                                    <field name="full_code" string="Code"/>
+                                    <field name="value_name" string="Description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Settings">
+                            <group>
+                                <group>
+                                    <field name="account_id" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                    <field name="active"/>
+                                </group>
+                            </group>
+                            <field name="notes" placeholder="Optional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Code Combination List View -->
+    <record id="view_budget_code_combination_list" model="ir.ui.view">
+        <field name="name">budget.code.combination.list</field>
+        <field name="model">budget.code.combination</field>
+        <field name="arch" type="xml">
+            <list string="Budget Code Combinations">
+                <field name="combination_code"/>
+                <field name="account_id"/>
+                <field name="date_from" optional="show"/>
+                <field name="date_to" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Code Combination Search View -->
+    <record id="view_budget_code_combination_search" model="ir.ui.view">
+        <field name="name">budget.code.combination.search</field>
+        <field name="model">budget.code.combination</field>
+        <field name="arch" type="xml">
+            <search string="Search Code Combinations">
+                <field name="combination_code"/>
+                <field name="account_id"/>
+                <separator/>
+                <filter string="Active" name="active"
+                        domain="[('active', '=', True)]"/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Code Combination Action -->
+    <record id="action_budget_code_combination" model="ir.actions.act_window">
+        <field name="name">Code Combinations</field>
+        <field name="res_model">budget.code.combination</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_budget_code_combination_search"/>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a code combination
+            </p>
+            <p>
+                Select leaf-level values from each segment type and an account
+                to create a unique budget code combination for tracking transactions.
+            </p>
+        </field>
+    </record>
+
+</odoo>

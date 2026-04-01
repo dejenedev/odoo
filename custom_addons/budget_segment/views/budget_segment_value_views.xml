@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =====================================================
+         NON-ECONOMIC SEGMENT VALUES
+         ===================================================== -->
+
+    <record id="view_budget_segment_value_form" model="ir.ui.view">
+        <field name="name">budget.segment.value.form</field>
+        <field name="model">budget.segment.value</field>
+        <field name="arch" type="xml">
+            <form string="Segment Value">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="segment_type_id"
+                                   domain="[('is_economic', '=', False)]"/>
+                            <field name="level_id"
+                                   domain="[('segment_type_id', '=', segment_type_id)]"/>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="full_code" readonly="1"/>
+                            <field name="is_leaf" readonly="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="level_number" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Child Values">
+                            <field name="child_ids"
+                                   context="{'default_segment_type_id': segment_type_id,
+                                             'budget_parent_level_id': level_id}">
+                                <list editable="bottom">
+                                    <field name="segment_type_id" column_invisible="1"/>
+                                    <field name="level_number" column_invisible="1"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="level_id"
+                                           domain="[('segment_type_id', '=', segment_type_id)]"/>
+                                    <field name="full_code" readonly="1"/>
+                                    <field name="is_leaf" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_budget_segment_value_list" model="ir.ui.view">
+        <field name="name">budget.segment.value.list</field>
+        <field name="model">budget.segment.value</field>
+        <field name="arch" type="xml">
+            <list string="Segment Values" default_order="segment_type_id, full_code">
+                <field name="segment_type_id" optional="show"/>
+                <field name="level_id"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="parent_id" optional="show"/>
+                <field name="full_code"/>
+                <field name="is_leaf" readonly="1"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_budget_segment_value_search" model="ir.ui.view">
+        <field name="name">budget.segment.value.search</field>
+        <field name="model">budget.segment.value</field>
+        <field name="arch" type="xml">
+            <search string="Search Segment Values">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="full_code"/>
+                <field name="segment_type_id"/>
+                <field name="level_id"/>
+                <field name="parent_id"/>
+                <filter string="Leaf Values Only" name="leaf_only"
+                        domain="[('is_leaf', '=', True)]"/>
+                <filter string="Last Level Only" name="last_level_only"
+                        domain="[('is_last_level', '=', True)]"/>
+                <separator/>
+                <group>
+                    <filter string="Segment Type" name="group_segment_type"
+                            domain="[]" context="{'group_by': 'segment_type_id'}"/>
+                    <filter string="Level" name="group_level"
+                            domain="[]" context="{'group_by': 'level_id'}"/>
+                    <filter string="Parent" name="group_parent"
+                            domain="[]" context="{'group_by': 'parent_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_budget_segment_value" model="ir.actions.act_window">
+        <field name="name">Segment Values</field>
+        <field name="res_model">budget.segment.value</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_economic', '=', False)]</field>
+        <field name="context">{'search_default_group_segment_type': 1, 'default_is_economic': False}</field>
+        <field name="search_view_id" ref="view_budget_segment_value_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create segment values
+            </p>
+            <p>
+                Define hierarchical values for each segment type.
+                Values at the last level (leaf) are used in code combinations.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_budget_segment_value_list_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_budget_segment_value_list"/>
+        <field name="act_window_id" ref="action_budget_segment_value"/>
+    </record>
+
+    <record id="action_budget_segment_value_form_view" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_budget_segment_value_form"/>
+        <field name="act_window_id" ref="action_budget_segment_value"/>
+    </record>
+
+    <!-- =====================================================
+         ECONOMIC SEGMENT VALUES
+         ===================================================== -->
+
+    <record id="view_budget_segment_value_economic_form" model="ir.ui.view">
+        <field name="name">budget.segment.value.economic.form</field>
+        <field name="model">budget.segment.value</field>
+        <field name="arch" type="xml">
+            <form string="Economic Segment Value">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="segment_type_id"
+                                   domain="[('is_economic', '=', True)]"/>
+                            <field name="level_id"
+                                   domain="[('segment_type_id', '=', segment_type_id)]"/>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="full_code" readonly="1"/>
+                            <field name="is_leaf" readonly="1"/>
+                            <field name="active" invisible="1"/>
+                            <field name="level_number" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="account_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Accounting"
+                              invisible="not is_last_level">
+                            <field name="is_economic" invisible="1"/>
+                            <field name="is_last_level" invisible="1"/>
+                            <group>
+                                <group>
+                                    <field name="account_type"/>
+                                    <field name="account_reconcile"/>
+                                    <field name="account_currency_id"/>
+                                </group>
+                                <group>
+                                    <field name="account_tax_ids"
+                                           widget="many2many_tags"/>
+                                    <field name="account_tag_ids"
+                                           widget="many2many_tags"/>
+                                </group>
+                            </group>
+                            <field name="account_description"
+                                   placeholder="Internal notes about this account..."/>
+                        </page>
+                        <page string="Child Values">
+                            <field name="child_ids"
+                                   context="{'default_segment_type_id': segment_type_id,
+                                             'budget_parent_level_id': level_id}">
+                                <list editable="bottom">
+                                    <field name="segment_type_id" column_invisible="1"/>
+                                    <field name="level_number" column_invisible="1"/>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="level_id"
+                                           domain="[('segment_type_id', '=', segment_type_id)]"/>
+                                    <field name="full_code" readonly="1"/>
+                                    <field name="is_leaf" readonly="1"/>
+                                    <field name="account_type" string="Type"/>
+                                    <field name="account_reconcile" string="Reconcile"/>
+                                    <field name="account_currency_id" string="Currency"/>
+                                    <field name="account_tax_ids" string="Taxes"
+                                           widget="many2many_tags"/>
+                                    <field name="account_tag_ids" string="Tags"
+                                           widget="many2many_tags"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_budget_segment_value_economic_list" model="ir.ui.view">
+        <field name="name">budget.segment.value.economic.list</field>
+        <field name="model">budget.segment.value</field>
+        <field name="arch" type="xml">
+            <list string="Economic Segment Values" default_order="segment_type_id, full_code">
+                <field name="segment_type_id" optional="show"/>
+                <field name="level_id"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="parent_id" optional="show"/>
+                <field name="full_code"/>
+                <field name="is_leaf" readonly="1"/>
+                <field name="account_type" string="Type" optional="show"/>
+                <field name="account_id" string="Linked Account" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_budget_segment_value_economic" model="ir.actions.act_window">
+        <field name="name">Economic Segment Values</field>
+        <field name="res_model">budget.segment.value</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_economic', '=', True)]</field>
+        <field name="context">{'search_default_group_segment_type': 1, 'default_is_economic': True}</field>
+        <field name="search_view_id" ref="view_budget_segment_value_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create economic segment values
+            </p>
+            <p>
+                Define hierarchical values for the economic segment.
+                Leaf-level values auto-sync with the Chart of Accounts.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_budget_segment_value_economic_list_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_budget_segment_value_economic_list"/>
+        <field name="act_window_id" ref="action_budget_segment_value_economic"/>
+    </record>
+
+    <record id="action_budget_segment_value_economic_form_view" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_budget_segment_value_economic_form"/>
+        <field name="act_window_id" ref="action_budget_segment_value_economic"/>
+    </record>
+
+</odoo>

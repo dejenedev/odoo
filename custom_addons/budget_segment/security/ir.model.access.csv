@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_budget_segment_type_manager,budget.segment.type.manager,model_budget_segment_type,account.group_account_manager,1,1,1,1
+access_budget_segment_type_user,budget.segment.type.user,model_budget_segment_type,account.group_account_invoice,1,0,0,0
+access_budget_segment_level_manager,budget.segment.level.manager,model_budget_segment_level,account.group_account_manager,1,1,1,1
+access_budget_segment_level_user,budget.segment.level.user,model_budget_segment_level,account.group_account_invoice,1,0,0,0
+access_budget_segment_value_manager,budget.segment.value.manager,model_budget_segment_value,account.group_account_manager,1,1,1,1
+access_budget_segment_value_user,budget.segment.value.user,model_budget_segment_value,account.group_account_invoice,1,0,0,0
+access_budget_code_combination_manager,budget.code.combination.manager,model_budget_code_combination,account.group_account_manager,1,1,1,1
+access_budget_code_combination_user,budget.code.combination.user,model_budget_code_combination,account.group_account_invoice,1,0,0,0
+access_budget_code_combination_line_manager,budget.code.combination.line.manager,model_budget_code_combination_line,account.group_account_manager,1,1,1,1
+access_budget_code_combination_line_user,budget.code.combination.line.user,model_budget_code_combination_line,account.group_account_invoice,1,0,0,0
+access_budget_combination_wizard_manager,budget.combination.wizard.manager,model_budget_combination_wizard,account.group_account_manager,1,1,1,1
+access_budget_combination_wizard_user,budget.combination.wizard.user,model_budget_combination_wizard,account.group_account_invoice,1,1,1,1
+access_budget_combination_wizard_line_manager,budget.combination.wizard.line.manager,model_budget_combination_wizard_line,account.group_account_manager,1,1,1,1
+access_budget_combination_wizard_line_user,budget.combination.wizard.line.user,model_budget_combination_wizard_line,account.group_account_invoice,1,1,1,1

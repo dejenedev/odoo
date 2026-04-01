@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Make Chart of Accounts form read-only -->
+    <record id="view_account_form_inherit_budget_segment" model="ir.ui.view">
+        <field name="name">account.account.form.inherit.budget.segment</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="edit">false</attribute>
+                <attribute name="delete">false</attribute>
+            </xpath>
+            <xpath expr="//form/sheet" position="before">
+                <div class="alert alert-info" role="alert">
+                    Chart of Accounts is managed through
+                    <b>Configuration &gt; Budget Segments &gt; Segment Values</b>
+                    (Economic Segment). This view is read-only.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Make Chart of Accounts list read-only -->
+    <record id="view_account_list_inherit_budget_segment" model="ir.ui.view">
+        <field name="name">account.account.list.inherit.budget.segment</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="create">false</attribute>
+                <attribute name="edit">false</attribute>
+                <attribute name="delete">false</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

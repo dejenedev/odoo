@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Add budget code + button to Journal Entry form (Journal Items tab) -->
+    <record id="view_move_form_inherit_budget_segment" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.budget.segment</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='line_ids']//list//field[@name='account_id']" position="after">
+                <field name="budget_combination_code" string="Budget Code"
+                       optional="show" readonly="1"/>
+                <button name="action_open_budget_wizard"
+                        type="object"
+                        icon="fa-search"
+                        title="Select Budget Code"
+                        class="oe_stat_button"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add budget code + button to Invoice form (invoice lines) -->
+    <record id="view_move_form_invoice_inherit_budget_segment" model="ir.ui.view">
+        <field name="name">account.move.form.invoice.inherit.budget.segment</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='account_id']" position="after">
+                <field name="budget_combination_code" string="Budget Code"
+                       optional="show" readonly="1"/>
+                <button name="action_open_budget_wizard"
+                        type="object"
+                        icon="fa-search"
+                        title="Select Budget Code"
+                        class="oe_stat_button"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
