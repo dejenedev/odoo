@@ -3,9 +3,16 @@
 
     <!-- Root Menu under Accounting/Invoicing -->
     <menuitem id="menu_budget_segment_root"
-              name="Budget Segments"
+              name="GL Settings"
               parent="account.menu_finance_configuration"
               sequence="50"/>
+
+    <!-- Organizations -->
+    <menuitem id="menu_budget_organization"
+              name="Organizations"
+              parent="menu_budget_segment_root"
+              action="action_budget_organization"
+              sequence="5"/>
 
     <!-- Segment Types -->
     <menuitem id="menu_budget_segment_type"
@@ -34,5 +41,12 @@
               parent="menu_budget_segment_root"
               action="action_budget_code_combination"
               sequence="30"/>
+
+    <!-- Payment Consolidation -->
+    <menuitem id="menu_budget_payment_consolidation"
+              name="Payment Consolidation"
+              parent="menu_budget_segment_root"
+              action="action_budget_payment_consolidation"
+              sequence="40"/>
 
 </odoo>

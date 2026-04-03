@@ -21,6 +21,7 @@
                         </group>
                         <group>
                             <field name="is_economic"/>
+                            <field name="is_organization"/>
                             <field name="separator"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="active" invisible="1"/>
@@ -54,6 +55,7 @@
                 <field name="code"/>
                 <field name="total_digits"/>
                 <field name="is_economic"/>
+                <field name="is_organization"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </list>
         </field>

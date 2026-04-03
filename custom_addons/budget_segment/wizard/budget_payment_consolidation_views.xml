@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_budget_payment_consolidation_form" model="ir.ui.view">
+        <field name="name">budget.payment.consolidation.form</field>
+        <field name="model">budget.payment.consolidation</field>
+        <field name="arch" type="xml">
+            <form string="Payment Consolidation">
+                <field name="state" invisible="1"/>
+                <field name="available_bank_ids" invisible="1"/>
+                <field name="paying_company_id" invisible="1"/>
+                <group invisible="state == 'done'">
+                    <group>
+                        <field name="paying_org_id"
+                               options="{'no_create': True}"/>
+                        <field name="payment_journal_id"
+                               options="{'no_create': True}"/>
+                        <field name="source_bank_account_id"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="currency_id" invisible="1"/>
+                        <field name="total_amount" readonly="1"/>
+                    </group>
+                </group>
+                <!-- Bill selection via wizard lines -->
+                <group invisible="state == 'done'" string="Submitted Bills">
+                    <field name="line_ids" nolabel="1" colspan="2">
+                        <list editable="bottom">
+                            <field name="selected"/>
+                            <field name="bill_name" string="Bill" readonly="1"/>
+                            <field name="partner_name" string="Vendor" readonly="1"/>
+                            <field name="invoice_date" string="Bill Date" readonly="1"/>
+                            <field name="company_name" string="Company" readonly="1"/>
+                            <field name="amount_total" string="Total" readonly="1" sum="Total"/>
+                            <field name="amount_residual" string="Due" readonly="1" sum="Due"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="bill_id" column_invisible="1"/>
+                            <field name="company_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </group>
+                <!-- Done state -->
+                <group invisible="state != 'done'">
+                    <div colspan="2">
+                        <field name="message" nolabel="1" readonly="1"
+                               class="text-success fw-bold fs-5"/>
+                    </div>
+                    <field name="created_move_ids" nolabel="1" colspan="2" readonly="1">
+                        <list>
+                            <field name="name" string="Entry"/>
+                            <field name="ref" string="Reference"/>
+                            <field name="journal_id" string="Journal"/>
+                            <field name="company_id" string="Company"/>
+                            <field name="date"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_load_bills" string="Load Bills"
+                            type="object" class="btn-secondary"
+                            invisible="state == 'done'"/>
+                    <button name="action_confirm" string="Create Payments"
+                            type="object" class="btn-primary"
+                            invisible="state == 'done'"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_payment_consolidation" model="ir.actions.act_window">
+        <field name="name">Payment Consolidation</field>
+        <field name="res_model">budget.payment.consolidation</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

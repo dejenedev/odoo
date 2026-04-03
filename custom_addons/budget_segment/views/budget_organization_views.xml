@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Organization Form View -->
+    <record id="view_budget_organization_form" model="ir.ui.view">
+        <field name="name">budget.organization.form</field>
+        <field name="model">budget.organization</field>
+        <field name="arch" type="xml">
+            <form string="Budget Organization">
+                <header>
+                    <button name="action_sync_coa"
+                            string="Sync Chart of Accounts"
+                            type="object"
+                            class="btn-primary"
+                            confirm="This will make all economic segment accounts accessible to this company. Continue?"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. Ministry of Finance"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="company_id"/>
+                            <field name="is_paying_org"/>
+                        </group>
+                        <group>
+                            <field name="payment_journal_id"
+                                   invisible="not is_paying_org"/>
+                            <field name="clearing_account_id"/>
+                            <field name="clearing_journal_id"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Organization Segments">
+                            <field name="segment_value_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"
+                                   domain="[('segment_type_id.is_organization', '=', True),
+                                            ('is_last_level', '=', True)]"/>
+                        </page>
+                        <page string="Bank Accounts"
+                              invisible="not is_paying_org">
+                            <field name="bank_account_ids">
+                                <list>
+                                    <field name="acc_number"/>
+                                    <field name="bank_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="allow_out_payment"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes"
+                                   placeholder="Optional notes about this organization..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Organization List View -->
+    <record id="view_budget_organization_list" model="ir.ui.view">
+        <field name="name">budget.organization.list</field>
+        <field name="model">budget.organization</field>
+        <field name="arch" type="xml">
+            <list string="Budget Organizations">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="is_paying_org"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Organization Search View -->
+    <record id="view_budget_organization_search" model="ir.ui.view">
+        <field name="name">budget.organization.search</field>
+        <field name="model">budget.organization</field>
+        <field name="arch" type="xml">
+            <search string="Search Organizations">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="company_id"/>
+                <filter string="Paying Organization" name="paying_org"
+                        domain="[('is_paying_org', '=', True)]"/>
+                <separator/>
+                <filter string="Archived" name="archived"
+                        domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Organization Action -->
+    <record id="action_budget_organization" model="ir.actions.act_window">
+        <field name="name">Organizations</field>
+        <field name="res_model">budget.organization</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_budget_organization_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a budget organization
+            </p>
+            <p>
+                Link organizations to companies and assign allowed
+                organization segment values for budget tracking.
+            </p>
+        </field>
+    </record>
+
+</odoo>

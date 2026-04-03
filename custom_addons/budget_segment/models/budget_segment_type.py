@@ -17,13 +17,15 @@ class BudgetSegmentType(models.Model):
     is_economic = fields.Boolean(string="Is Economic Segment",
                                  help="If checked, this segment uses the Odoo Chart of Accounts "
                                       "instead of custom segment values.")
+    is_organization = fields.Boolean(string="Is Organization Segment",
+                                      help="If checked, this segment represents organizational units. "
+                                           "Values can be assigned to budget organizations.")
     level_ids = fields.One2many('budget.segment.level', 'segment_type_id', string="Levels")
     value_ids = fields.One2many('budget.segment.value', 'segment_type_id', string="Values")
     active = fields.Boolean(default=True)
     separator = fields.Char(string="Code Separator", default="-",
                             help="Character used to separate levels in the segment code display.")
-    company_id = fields.Many2one('res.company', string="Company",
-                                 default=lambda self: self.env.company)
+    company_id = fields.Many2one('res.company', string="Company")
 
     _code_company_uniq = models.Constraint(
         'unique(code, company_id)',

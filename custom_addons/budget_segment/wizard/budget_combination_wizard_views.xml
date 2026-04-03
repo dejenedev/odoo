@@ -15,25 +15,37 @@
                         <field name="combination_code" readonly="1"/>
                     </group>
                 </group>
-                <field name="line_ids" nolabel="1">
+                <!-- Segment selection lines -->
+                <field name="line_ids" nolabel="1"
+                       invisible="state == 'partial'">
                     <list editable="bottom" create="false" delete="false">
                         <field name="segment_name" string="Segment" readonly="1"/>
                         <field name="segment_type_id" column_invisible="1"/>
                         <field name="is_economic" column_invisible="1"/>
+                        <field name="is_organization" column_invisible="1"/>
+                        <field name="allowed_value_ids" column_invisible="1"/>
                         <field name="value_code" column_invisible="1"/>
                         <field name="segment_value_id" string="Value"
                                options="{'no_create': True}"
-                               readonly="is_economic"
-                               force_save="1"/>
+                               domain="[('id', 'in', allowed_value_ids)]"/>
                         <field name="value_description" string="Value"
                                readonly="1"/>
                     </list>
                 </field>
+                <!-- Partial search results -->
+                <group invisible="state != 'partial'">
+                    <field name="matching_combination_ids" invisible="1"/>
+                    <field name="selected_combination_id" string="Select Combination"
+                           domain="[('id', 'in', matching_combination_ids)]"
+                           options="{'no_create': True, 'no_open': True}"
+                           colspan="2"/>
+                </group>
+                <!-- Messages -->
                 <group invisible="not message">
                     <div colspan="2">
                         <field name="message" nolabel="1" readonly="1"
                                class="text-info fw-bold"
-                               invisible="state != 'found'"/>
+                               invisible="state not in ('found', 'partial')"/>
                         <field name="message" nolabel="1" readonly="1"
                                class="text-danger fw-bold"
                                invisible="state != 'not_found'"/>
@@ -42,12 +54,19 @@
                 <footer>
                     <button name="action_search" string="Search" type="object"
                             class="btn-primary"
-                            invisible="state == 'found'"/>
+                            invisible="state in ('found', 'partial')"/>
+                    <button name="action_select_combination"
+                            string="Use Selected" type="object"
+                            class="btn-primary"
+                            invisible="state != 'partial'"/>
                     <button name="action_confirm" string="Confirm &amp; Assign" type="object"
                             class="btn-primary"
                             invisible="state != 'found'"/>
                     <button name="action_clear" string="Clear Budget Code" type="object"
                             class="btn-secondary"/>
+                    <button name="action_search" string="Back to Search" type="object"
+                            class="btn-secondary"
+                            invisible="state not in ('partial', 'not_found')"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

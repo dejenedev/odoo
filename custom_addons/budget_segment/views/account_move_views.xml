@@ -1,25 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Add budget code + button to Journal Entry form (Journal Items tab) -->
+    <!-- Budget payment status ribbon and submit button on vendor bills -->
+    <record id="view_move_form_inherit_submit_payment" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.submit.payment</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <!-- Hidden fields -->
+            <xpath expr="//header" position="before">
+                <field name="submitted_for_payment" invisible="1"/>
+                <field name="budget_payment_state" invisible="1"/>
+                <field name="is_paying_org_company" invisible="1"/>
+            </xpath>
+            <!-- Submit / Withdraw buttons -->
+            <xpath expr="//header" position="inside">
+                <button name="action_submit_for_payment"
+                        string="Submit for Payment"
+                        type="object"
+                        class="btn-primary"
+                        invisible="move_type not in ('in_invoice', 'in_refund') or state != 'posted' or submitted_for_payment or payment_state not in ('not_paid', 'partial') or is_paying_org_company"/>
+                <button name="action_unsubmit_for_payment"
+                        string="Withdraw Submission"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="move_type not in ('in_invoice', 'in_refund') or budget_payment_state != 'submitted'"/>
+            </xpath>
+            <!-- Status ribbons -->
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="ribbon ribbon-top-right"
+                     invisible="budget_payment_state != 'submitted'">
+                    <span class="bg-warning">SUBMITTED</span>
+                </div>
+                <div class="ribbon ribbon-top-right"
+                     invisible="budget_payment_state != 'paid'">
+                    <span class="bg-success">PAID</span>
+                </div>
+            </xpath>
+            <!-- Hide Pay button for non-paying org vendor bills -->
+            <xpath expr="//button[@id='account_invoice_payment_btn']" position="attributes">
+                <attribute name="invisible">(
+                    state != 'posted'
+                    or payment_state not in ('not_paid', 'partial', 'in_payment')
+                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                    or invoice_has_outstanding
+                    or (move_type in ('in_invoice', 'in_refund') and not is_paying_org_company)
+                )</attribute>
+            </xpath>
+            <xpath expr="//button[@id='account_invoice_payment_secondary_btn']" position="attributes">
+                <attribute name="invisible">(
+                    state != 'posted'
+                    or payment_state not in ('not_paid', 'partial', 'in_payment')
+                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                    or not invoice_has_outstanding
+                    or (move_type in ('in_invoice', 'in_refund') and not is_paying_org_company)
+                )</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add budget code to Journal Entry form (Journal Items tab) -->
     <record id="view_move_form_inherit_budget_segment" model="ir.ui.view">
         <field name="name">account.move.form.inherit.budget.segment</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='line_ids']//list//field[@name='account_id']" position="after">
-                <field name="budget_combination_code" string="Budget Code"
-                       optional="show" readonly="1"/>
-                <button name="action_open_budget_wizard"
+                <field name="allowed_budget_combination_ids" column_invisible="1"/>
+                <field name="budget_combination_id" string="Budget Code"
+                       optional="show"
+                       options="{'no_create': True, 'no_open': True}"
+                       domain="[('id', 'in', allowed_budget_combination_ids)]"/>
+                <button name="action_view_budget_combination"
                         type="object"
-                        icon="fa-search"
-                        title="Select Budget Code"
-                        class="oe_stat_button"/>
+                        icon="fa-eye"
+                        title="View Budget Code Detail"
+                        invisible="not budget_combination_id"/>
             </xpath>
         </field>
     </record>
 
-    <!-- Add budget code + button to Invoice form (invoice lines) -->
+    <!-- Add budget code to Invoice form (invoice lines) -->
     <record id="view_move_form_invoice_inherit_budget_segment" model="ir.ui.view">
         <field name="name">account.move.form.invoice.inherit.budget.segment</field>
         <field name="model">account.move</field>
@@ -27,14 +89,66 @@
         <field name="priority">100</field>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='account_id']" position="after">
-                <field name="budget_combination_code" string="Budget Code"
-                       optional="show" readonly="1"/>
-                <button name="action_open_budget_wizard"
+                <field name="allowed_budget_combination_ids" column_invisible="1"/>
+                <field name="budget_combination_id" string="Budget Code"
+                       optional="show"
+                       options="{'no_create': True, 'no_open': True}"
+                       domain="[('id', 'in', allowed_budget_combination_ids)]"/>
+                <button name="action_view_budget_combination"
                         type="object"
-                        icon="fa-search"
-                        title="Select Budget Code"
-                        class="oe_stat_button"/>
+                        icon="fa-eye"
+                        title="View Budget Code Detail"
+                        invisible="not budget_combination_id"/>
             </xpath>
+        </field>
+    </record>
+
+    <!-- Readonly popup form for viewing combination from transactions -->
+    <record id="view_budget_code_combination_popup_form" model="ir.ui.view">
+        <field name="name">budget.code.combination.popup.form</field>
+        <field name="model">budget.code.combination</field>
+        <field name="arch" type="xml">
+            <form string="Budget Code Detail" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="combination_code" string="Code Combination"/>
+                        <h1>
+                            <field name="combination_code"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="segment_summary" nolabel="1" colspan="2"/>
+                    </group>
+                    <notebook>
+                        <page string="Segment Values">
+                            <field name="line_ids" nolabel="1">
+                                <list create="false" delete="false">
+                                    <field name="segment_type_id" string="Segment"/>
+                                    <field name="segment_value_id" string="Value"/>
+                                    <field name="full_code" string="Code"/>
+                                    <field name="value_name" string="Description"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Settings">
+                            <group>
+                                <group>
+                                    <field name="account_id"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                </group>
+                                <group>
+                                    <field name="company_id"/>
+                                    <field name="active"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button string="Back" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
 

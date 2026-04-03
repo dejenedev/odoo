@@ -4,3 +4,4 @@ from . import budget_segment_value
 from . import budget_code_combination
 from . import account_move_line
 from . import res_config_settings
+from . import budget_organization
