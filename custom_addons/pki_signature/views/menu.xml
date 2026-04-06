@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root menu under Settings -->
+    <menuitem id="menu_pki_root"
+              name="PKI Digital Signature"
+              parent="base.menu_administration"
+              sequence="90"/>
+
+    <menuitem id="menu_pki_ca"
+              name="Certificate Authorities"
+              parent="menu_pki_root"
+              action="action_pki_ca"
+              sequence="10"/>
+
+    <menuitem id="menu_pki_user_certificate"
+              name="User Certificates"
+              parent="menu_pki_root"
+              action="action_pki_user_certificate"
+              sequence="20"/>
+
+    <menuitem id="menu_pki_approval_rule"
+              name="Approval Rules"
+              parent="menu_pki_root"
+              action="action_pki_approval_rule"
+              sequence="30"/>
+
+</odoo>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pki_ca_form" model="ir.ui.view">
+        <field name="name">pki.certificate.authority.form</field>
+        <field name="model">pki.certificate.authority</field>
+        <field name="arch" type="xml">
+            <form string="Certificate Authority">
+                <header>
+                    <button name="action_generate_ca"
+                            string="Generate CA"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"
+                            confirm="This will generate a new CA key pair and certificate. Continue?"/>
+                    <button name="action_revoke"
+                            string="Revoke"
+                            type="object"
+                            class="btn-danger"
+                            invisible="state != 'active'"
+                            confirm="Revoking a CA will prevent issuing new certificates. Continue?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Budget System CA"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="key_size"/>
+                            <field name="serial_number"/>
+                        </group>
+                        <group>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="issued_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Certificate Details">
+                            <field name="certificate_text" readonly="1"
+                                   widget="text" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pki_ca_list" model="ir.ui.view">
+        <field name="name">pki.certificate.authority.list</field>
+        <field name="model">pki.certificate.authority</field>
+        <field name="arch" type="xml">
+            <list string="Certificate Authorities" create="true">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="serial_number"/>
+                <field name="valid_from"/>
+                <field name="valid_to"/>
+                <field name="issued_count"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'revoked'"
+                       decoration-muted="state == 'draft'"
+                       decoration-warning="state == 'expired'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_pki_ca" model="ir.actions.act_window">
+        <field name="name">Certificate Authorities</field>
+        <field name="res_model">pki.certificate.authority</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

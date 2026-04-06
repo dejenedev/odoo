@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- PKI User: can sign documents -->
+    <record id="group_pki_user" model="res.groups">
+        <field name="name">PKI Signer</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- PKI Admin: manage CAs, issue certificates, configure rules -->
+    <record id="group_pki_admin" model="res.groups">
+        <field name="name">PKI Administrator</field>
+        <field name="implied_ids" eval="[(4, ref('group_pki_user'))]"/>
+    </record>
+
+</odoo>

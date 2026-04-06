@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pki_verify_wizard_form" model="ir.ui.view">
+        <field name="name">pki.verify.wizard.form</field>
+        <field name="model">pki.verify.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Signature Verification">
+                <field name="res_model" invisible="1"/>
+                <field name="res_id" invisible="1"/>
+                <group>
+                    <field name="overall_status" widget="badge"
+                           decoration-success="overall_status == 'valid'"
+                           decoration-danger="overall_status == 'invalid'"
+                           decoration-warning="overall_status == 'partial'"
+                           decoration-muted="overall_status == 'none'"/>
+                </group>
+                <field name="line_ids" nolabel="1">
+                    <list create="false" delete="false" edit="false">
+                        <field name="sequence"/>
+                        <field name="step_name" string="Step"/>
+                        <field name="status" widget="badge"
+                               decoration-success="status == 'signed'"
+                               decoration-warning="status == 'pending'"
+                               decoration-danger="status == 'rejected'"/>
+                        <field name="signer_name" string="Signed By"/>
+                        <field name="signature_date"/>
+                        <field name="hash_valid" string="Data Intact" widget="boolean"/>
+                        <field name="signature_valid" string="Sig Valid" widget="boolean"/>
+                        <field name="certificate_valid" string="Cert Valid" widget="boolean"/>
+                        <field name="certificate_fingerprint" string="Cert Fingerprint" optional="hide"/>
+                    </list>
+                </field>
+                <footer>
+                    <button string="Close" class="btn-primary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

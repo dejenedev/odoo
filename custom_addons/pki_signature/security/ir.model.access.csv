@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pki_ca_admin,pki.certificate.authority.admin,model_pki_certificate_authority,pki_signature.group_pki_admin,1,1,1,1
+access_pki_ca_user,pki.certificate.authority.user,model_pki_certificate_authority,pki_signature.group_pki_user,1,0,0,0
+access_pki_user_cert_admin,pki.user.certificate.admin,model_pki_user_certificate,pki_signature.group_pki_admin,1,1,1,1
+access_pki_user_cert_user,pki.user.certificate.user,model_pki_user_certificate,pki_signature.group_pki_user,1,0,0,0
+access_pki_approval_rule_admin,pki.approval.rule.admin,model_pki_approval_rule,pki_signature.group_pki_admin,1,1,1,1
+access_pki_approval_rule_user,pki.approval.rule.user,model_pki_approval_rule,pki_signature.group_pki_user,1,0,0,0
+access_pki_signature_line_admin,pki.signature.line.admin,model_pki_signature_line,pki_signature.group_pki_admin,1,1,1,1
+access_pki_signature_line_user,pki.signature.line.user,model_pki_signature_line,pki_signature.group_pki_user,1,1,1,0
+access_pki_sign_wizard_admin,pki.sign.wizard.admin,model_pki_sign_wizard,pki_signature.group_pki_admin,1,1,1,1
+access_pki_sign_wizard_user,pki.sign.wizard.user,model_pki_sign_wizard,pki_signature.group_pki_user,1,1,1,1
+access_pki_reject_wizard_admin,pki.reject.wizard.admin,model_pki_reject_wizard,pki_signature.group_pki_admin,1,1,1,1
+access_pki_reject_wizard_user,pki.reject.wizard.user,model_pki_reject_wizard,pki_signature.group_pki_user,1,1,1,1
+access_pki_verify_wizard_admin,pki.verify.wizard.admin,model_pki_verify_wizard,pki_signature.group_pki_admin,1,1,1,1
+access_pki_verify_wizard_user,pki.verify.wizard.user,model_pki_verify_wizard,pki_signature.group_pki_user,1,1,1,1
+access_pki_verify_wizard_line_admin,pki.verify.wizard.line.admin,model_pki_verify_wizard_line,pki_signature.group_pki_admin,1,1,1,1
+access_pki_verify_wizard_line_user,pki.verify.wizard.line.user,model_pki_verify_wizard_line,pki_signature.group_pki_user,1,1,1,1

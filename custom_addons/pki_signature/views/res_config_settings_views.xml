@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_inherit_pki" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.pki</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='general_settings']" position="inside">
+                <block title="PKI Digital Signature" name="pki_settings">
+                    <setting string="Certificate Authorities"
+                             help="Manage PKI Certificate Authorities for document signing">
+                        <button name="%(action_pki_ca)d"
+                                string="Manage CAs"
+                                type="action" class="btn-link"
+                                icon="fa-certificate"/>
+                    </setting>
+                    <setting string="User Certificates"
+                             help="Issue and manage user signing certificates">
+                        <button name="%(action_pki_user_certificate)d"
+                                string="Manage Certificates"
+                                type="action" class="btn-link"
+                                icon="fa-id-card"/>
+                    </setting>
+                    <setting string="Approval Rules"
+                             help="Configure multi-level approval chains per document type">
+                        <button name="%(action_pki_approval_rule)d"
+                                string="Configure Rules"
+                                type="action" class="btn-link"
+                                icon="fa-check-square"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Sign Wizard -->
+    <record id="view_pki_sign_wizard_form" model="ir.ui.view">
+        <field name="name">pki.sign.wizard.form</field>
+        <field name="model">pki.sign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sign Document">
+                <group>
+                    <field name="role_name" readonly="1"/>
+                    <field name="document_hash_preview" readonly="1"/>
+                    <field name="password" password="True"/>
+                </group>
+                <group>
+                    <field name="visual_signature" widget="signature"/>
+                </group>
+                <field name="res_model" invisible="1"/>
+                <field name="res_id" invisible="1"/>
+                <field name="signature_line_id" invisible="1"/>
+                <footer>
+                    <button name="action_sign" string="Sign"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Reject Wizard -->
+    <record id="view_pki_reject_wizard_form" model="ir.ui.view">
+        <field name="name">pki.reject.wizard.form</field>
+        <field name="model">pki.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reject Approval">
+                <group>
+                    <field name="rejection_reason" placeholder="Enter reason for rejection..."/>
+                </group>
+                <field name="signature_line_id" invisible="1"/>
+                <footer>
+                    <button name="action_reject" string="Reject"
+                            type="object" class="btn-danger"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

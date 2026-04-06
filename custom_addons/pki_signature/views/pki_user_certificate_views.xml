@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pki_user_certificate_form" model="ir.ui.view">
+        <field name="name">pki.user.certificate.form</field>
+        <field name="model">pki.user.certificate</field>
+        <field name="arch" type="xml">
+            <form string="User Certificate">
+                <header>
+                    <button name="action_suspend"
+                            string="Suspend"
+                            type="object"
+                            invisible="state != 'active'"/>
+                    <button name="action_reactivate"
+                            string="Reactivate"
+                            type="object"
+                            invisible="state != 'suspended'"/>
+                    <button name="action_revoke"
+                            string="Revoke"
+                            type="object"
+                            class="btn-danger"
+                            invisible="state not in ('active', 'suspended')"
+                            confirm="Revoking a certificate is permanent. Continue?"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="ca_id"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="serial_number"/>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="fingerprint"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Certificate Details">
+                            <field name="certificate_text" readonly="1"
+                                   widget="text" nolabel="1"/>
+                        </page>
+                        <page string="Revocation" invisible="state != 'revoked'">
+                            <field name="revocation_reason"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_pki_user_certificate_list" model="ir.ui.view">
+        <field name="name">pki.user.certificate.list</field>
+        <field name="model">pki.user.certificate</field>
+        <field name="arch" type="xml">
+            <list string="User Certificates">
+                <field name="user_id"/>
+                <field name="ca_id"/>
+                <field name="serial_number"/>
+                <field name="valid_from"/>
+                <field name="valid_to"/>
+                <field name="fingerprint"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-danger="state == 'revoked'"
+                       decoration-muted="state == 'draft'"
+                       decoration-warning="state in ('suspended', 'expired')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_pki_user_certificate" model="ir.actions.act_window">
+        <field name="name">User Certificates</field>
+        <field name="res_model">pki.user.certificate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

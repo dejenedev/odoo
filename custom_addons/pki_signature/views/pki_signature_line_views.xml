@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pki_signature_line_list" model="ir.ui.view">
+        <field name="name">pki.signature.line.list</field>
+        <field name="model">pki.signature.line</field>
+        <field name="arch" type="xml">
+            <list string="Signature Lines" create="false" delete="false">
+                <field name="sequence"/>
+                <field name="rule_name" string="Step"/>
+                <field name="group_id" string="Required Role"/>
+                <field name="signed_by_name" string="Signed By"/>
+                <field name="signature_date"/>
+                <field name="visual_signature" widget="image"
+                       options="{'size': [100, 50]}"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'signed'"
+                       decoration-warning="status == 'pending'"
+                       decoration-danger="status == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_pki_signature_line_form" model="ir.ui.view">
+        <field name="name">pki.signature.line.form</field>
+        <field name="model">pki.signature.line</field>
+        <field name="arch" type="xml">
+            <form string="Signature Line" create="false" edit="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="rule_name"/>
+                            <field name="group_id"/>
+                            <field name="status" widget="badge"/>
+                            <field name="signer_id"/>
+                            <field name="signature_date"/>
+                        </group>
+                        <group>
+                            <field name="document_hash"/>
+                            <field name="certificate_id"/>
+                            <field name="is_hash_valid"/>
+                            <field name="is_signature_valid"/>
+                        </group>
+                    </group>
+                    <group invisible="status != 'signed'">
+                        <field name="visual_signature" widget="image"/>
+                    </group>
+                    <group invisible="status != 'rejected'">
+                        <field name="rejection_reason"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>
