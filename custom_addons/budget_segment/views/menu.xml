@@ -42,6 +42,19 @@
               action="action_budget_code_combination"
               sequence="30"/>
 
+    <!-- Trial Balance -->
+    <menuitem id="menu_budget_trial_balance"
+              name="Trial Balance by Segment"
+              parent="menu_budget_segment_root"
+              action="action_budget_trial_balance"
+              sequence="35"/>
+
+    <menuitem id="menu_budget_combination_trial_balance"
+              name="Trial Balance by Code Combination"
+              parent="menu_budget_segment_root"
+              action="action_budget_combination_trial_balance"
+              sequence="36"/>
+
     <!-- Payment Consolidation -->
     <menuitem id="menu_budget_payment_consolidation"
               name="Payment Consolidation"

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- List View -->
+    <record id="view_budget_trial_balance_list" model="ir.ui.view">
+        <field name="name">budget.segment.trial.balance.list</field>
+        <field name="model">budget.segment.trial.balance</field>
+        <field name="arch" type="xml">
+            <list string="Trial Balance by Segment" create="false"
+                  edit="false" delete="false">
+                <field name="segment_1_value_id" string="Segment 1" optional="show"/>
+                <field name="segment_2_value_id" string="Segment 2" optional="show"/>
+                <field name="segment_3_value_id" string="Segment 3" optional="show"/>
+                <field name="segment_4_value_id" string="Segment 4" optional="hide"/>
+                <field name="segment_5_value_id" string="Segment 5" optional="hide"/>
+                <field name="segment_6_value_id" string="Segment 6" optional="hide"/>
+                <field name="segment_7_value_id" string="Segment 7" optional="hide"/>
+                <field name="combination_code" string="Budget Code" optional="show"/>
+                <field name="account_id" string="Account" optional="hide"/>
+                <field name="partner_id" string="Partner" optional="hide"/>
+                <field name="date" optional="hide"/>
+                <field name="move_id" string="Entry" optional="hide"/>
+                <field name="company_id" string="Company" optional="hide"/>
+                <field name="debit" sum="Total Debit"/>
+                <field name="credit" sum="Total Credit"/>
+                <field name="balance" sum="Balance"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_budget_trial_balance_search" model="ir.ui.view">
+        <field name="name">budget.segment.trial.balance.search</field>
+        <field name="model">budget.segment.trial.balance</field>
+        <field name="arch" type="xml">
+            <search string="Trial Balance by Segment">
+                <field name="combination_code"/>
+                <field name="segment_1_value_id"/>
+                <field name="segment_2_value_id"/>
+                <field name="segment_3_value_id"/>
+                <field name="account_id"/>
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="date"/>
+                <separator/>
+                <group>
+                    <filter string="Segment 1" name="group_segment_1"
+                            domain="[]" context="{'group_by': 'segment_1_value_id'}"/>
+                    <filter string="Segment 2" name="group_segment_2"
+                            domain="[]" context="{'group_by': 'segment_2_value_id'}"/>
+                    <filter string="Segment 3" name="group_segment_3"
+                            domain="[]" context="{'group_by': 'segment_3_value_id'}"/>
+                    <filter string="Segment 4" name="group_segment_4"
+                            domain="[]" context="{'group_by': 'segment_4_value_id'}"/>
+                    <filter string="Segment 5" name="group_segment_5"
+                            domain="[]" context="{'group_by': 'segment_5_value_id'}"/>
+                    <filter string="Segment 6" name="group_segment_6"
+                            domain="[]" context="{'group_by': 'segment_6_value_id'}"/>
+                    <filter string="Segment 7" name="group_segment_7"
+                            domain="[]" context="{'group_by': 'segment_7_value_id'}"/>
+                    <filter string="Budget Code" name="group_combination"
+                            domain="[]" context="{'group_by': 'budget_combination_id'}"/>
+                    <filter string="Account" name="group_account"
+                            domain="[]" context="{'group_by': 'account_id'}"/>
+                    <filter string="Company" name="group_company"
+                            domain="[]" context="{'group_by': 'company_id'}"/>
+                    <filter string="Partner" name="group_partner"
+                            domain="[]" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Date" name="group_date"
+                            domain="[]" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_budget_trial_balance" model="ir.actions.act_window">
+        <field name="name">Trial Balance by Segment</field>
+        <field name="res_model">budget.segment.trial.balance</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_budget_trial_balance_search"/>
+        <field name="context">{
+            'search_default_group_segment_1': 1,
+            'search_default_group_segment_2': 1,
+            'search_default_group_segment_3': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No budget segment data found
+            </p>
+            <p>
+                Post journal entries with budget code combinations to see
+                trial balance data broken down by segment.
+            </p>
+        </field>
+    </record>
+
+</odoo>

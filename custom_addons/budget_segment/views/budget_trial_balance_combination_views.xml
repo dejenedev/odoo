@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Pivot View -->
+    <record id="view_budget_combination_trial_balance_pivot" model="ir.ui.view">
+        <field name="name">budget.combination.trial.balance.pivot</field>
+        <field name="model">budget.combination.trial.balance</field>
+        <field name="arch" type="xml">
+            <pivot string="Trial Balance by Code Combination">
+                <field name="budget_combination_id" type="row"/>
+                <field name="debit" type="measure"/>
+                <field name="credit" type="measure"/>
+                <field name="balance" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_budget_combination_trial_balance_list" model="ir.ui.view">
+        <field name="name">budget.combination.trial.balance.list</field>
+        <field name="model">budget.combination.trial.balance</field>
+        <field name="arch" type="xml">
+            <list string="Trial Balance by Code Combination" create="false"
+                  edit="false" delete="false">
+                <field name="combination_code" string="Budget Code"/>
+                <field name="account_id" string="Account" optional="show"/>
+                <field name="partner_id" string="Partner" optional="hide"/>
+                <field name="move_id" string="Entry" optional="hide"/>
+                <field name="date" optional="hide"/>
+                <field name="company_id" string="Company" optional="show"/>
+                <field name="debit" sum="Total Debit"/>
+                <field name="credit" sum="Total Credit"/>
+                <field name="balance" sum="Balance"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_budget_combination_trial_balance_search" model="ir.ui.view">
+        <field name="name">budget.combination.trial.balance.search</field>
+        <field name="model">budget.combination.trial.balance</field>
+        <field name="arch" type="xml">
+            <search string="Trial Balance by Code Combination">
+                <field name="combination_code"/>
+                <field name="budget_combination_id"/>
+                <field name="account_id"/>
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="date"/>
+                <separator/>
+                <group>
+                    <filter string="Budget Code" name="group_combination"
+                            domain="[]" context="{'group_by': 'budget_combination_id'}"/>
+                    <filter string="Account" name="group_account"
+                            domain="[]" context="{'group_by': 'account_id'}"/>
+                    <filter string="Company" name="group_company"
+                            domain="[]" context="{'group_by': 'company_id'}"/>
+                    <filter string="Partner" name="group_partner"
+                            domain="[]" context="{'group_by': 'partner_id'}"/>
+                    <filter string="Date" name="group_date"
+                            domain="[]" context="{'group_by': 'date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_budget_combination_trial_balance" model="ir.actions.act_window">
+        <field name="name">Trial Balance by Code Combination</field>
+        <field name="res_model">budget.combination.trial.balance</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_budget_combination_trial_balance_search"/>
+        <field name="context">{'search_default_group_combination': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No budget data found
+            </p>
+            <p>
+                Post journal entries with budget code combinations to see
+                trial balance data grouped by code combination.
+            </p>
+        </field>
+    </record>
+
+</odoo>

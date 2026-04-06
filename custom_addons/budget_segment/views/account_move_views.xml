@@ -20,7 +20,7 @@
                         string="Submit for Payment"
                         type="object"
                         class="btn-primary"
-                        invisible="move_type not in ('in_invoice', 'in_refund') or state != 'posted' or submitted_for_payment or payment_state not in ('not_paid', 'partial') or is_paying_org_company"/>
+                        invisible="move_type not in ('in_invoice', 'in_refund') or state != 'posted' or submitted_for_payment or payment_state not in ('not_paid', 'partial')"/>
                 <button name="action_unsubmit_for_payment"
                         string="Withdraw Submission"
                         type="object"
@@ -38,23 +38,21 @@
                     <span class="bg-success">PAID</span>
                 </div>
             </xpath>
-            <!-- Hide Pay button for non-paying org vendor bills -->
+            <!-- Hide Pay button on all vendor bills — payment is through submission only -->
             <xpath expr="//button[@id='account_invoice_payment_btn']" position="attributes">
                 <attribute name="invisible">(
                     state != 'posted'
                     or payment_state not in ('not_paid', 'partial', 'in_payment')
-                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                    or move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_receipt')
                     or invoice_has_outstanding
-                    or (move_type in ('in_invoice', 'in_refund') and not is_paying_org_company)
                 )</attribute>
             </xpath>
             <xpath expr="//button[@id='account_invoice_payment_secondary_btn']" position="attributes">
                 <attribute name="invisible">(
                     state != 'posted'
                     or payment_state not in ('not_paid', 'partial', 'in_payment')
-                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                    or move_type not in ('out_invoice', 'out_refund', 'out_receipt', 'in_receipt')
                     or not invoice_has_outstanding
-                    or (move_type in ('in_invoice', 'in_refund') and not is_paying_org_company)
                 )</attribute>
             </xpath>
         </field>
