@@ -47,7 +47,7 @@ class PkiUserCertificate(models.Model):
         help="SHA-256 fingerprint of the certificate for quick lookup.")
     company_id = fields.Many2one(
         'res.company', string="Company",
-        default=lambda self: self.env.company, required=True)
+        help="Optional. Leave empty for a certificate valid across all companies.")
     key_salt = fields.Char(
         string="Key Salt", readonly=True,
         help="Salt used for password-based key derivation.")

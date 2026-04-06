@@ -21,8 +21,7 @@ class ResUsers(models.Model):
             cert = self.env['pki.user.certificate'].search([
                 ('user_id', '=', user.id),
                 ('state', '=', 'active'),
-                ('company_id', '=', self.env.company.id),
-            ], limit=1)
+            ], limit=1, order='create_date desc')
             user.pki_active_certificate_id = cert
 
     def _pki_re_encrypt_on_password_change(self, old_password, new_password):

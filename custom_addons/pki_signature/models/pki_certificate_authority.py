@@ -39,7 +39,7 @@ class PkiCertificateAuthority(models.Model):
     ], string="Status", default='draft', required=True)
     company_id = fields.Many2one(
         'res.company', string="Company",
-        default=lambda self: self.env.company, required=True)
+        help="Leave empty for a system-wide CA shared across all companies/ministries.")
     issued_count = fields.Integer(
         string="Certificates Issued", compute='_compute_issued_count')
     key_size = fields.Integer(string="Key Size", default=2048, readonly=True)
@@ -82,12 +82,11 @@ class PkiCertificateAuthority(models.Model):
             if rec.state == 'active':
                 existing = self.search([
                     ('state', '=', 'active'),
-                    ('company_id', '=', rec.company_id.id),
                     ('id', '!=', rec.id),
                 ])
                 if existing:
                     raise ValidationError(_(
-                        "Only one active CA per company is allowed. "
+                        "Only one active CA is allowed in the system. "
                         "'%s' is already active."
                     ) % existing[0].name)
 

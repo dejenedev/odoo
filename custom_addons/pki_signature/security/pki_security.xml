@@ -1,16 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- PKI User: can sign documents -->
-    <record id="group_pki_user" model="res.groups">
-        <field name="name">PKI Signer</field>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    <!-- Module category -->
+    <record id="module_category_pki" model="ir.module.category">
+        <field name="name">PKI Digital Signature</field>
+        <field name="sequence">200</field>
     </record>
 
-    <!-- PKI Admin: manage CAs, issue certificates, configure rules -->
+    <!-- Privilege (shows in Access Rights tab on user form) -->
+    <record id="res_groups_privilege_pki" model="res.groups.privilege">
+        <field name="name">PKI Digital Signature</field>
+        <field name="sequence">90</field>
+        <field name="category_id" ref="module_category_pki"/>
+    </record>
+
+    <!-- PKI Signer -->
+    <record id="group_pki_user" model="res.groups">
+        <field name="name">Signer</field>
+        <field name="sequence">10</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="privilege_id" ref="res_groups_privilege_pki"/>
+    </record>
+
+    <!-- PKI Administrator -->
     <record id="group_pki_admin" model="res.groups">
-        <field name="name">PKI Administrator</field>
+        <field name="name">Administrator</field>
+        <field name="sequence">20</field>
         <field name="implied_ids" eval="[(4, ref('group_pki_user'))]"/>
+        <field name="privilege_id" ref="res_groups_privilege_pki"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
 </odoo>
