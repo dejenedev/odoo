@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="metabase_url_default" model="ir.config_parameter">
+        <field name="key">budget_segment.metabase_url</field>
+        <field name="value">http://localhost:3000</field>
+    </record>
+
+    <record id="metabase_dashboard_id_default" model="ir.config_parameter">
+        <field name="key">budget_segment.metabase_dashboard_id</field>
+        <field name="value">01d8c811-f13b-4fc4-af61-ce5d04eafce1</field>
+    </record>
+
+</odoo>

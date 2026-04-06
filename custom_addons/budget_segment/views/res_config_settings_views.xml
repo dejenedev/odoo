@@ -13,6 +13,17 @@
                         <field name="budget_auto_create_combination" widget="radio"/>
                     </setting>
                 </block>
+                <block title="BI Dashboard (Metabase)" name="metabase_settings">
+                    <setting string="Metabase URL"
+                             help="Base URL of the Metabase server">
+                        <field name="metabase_url" placeholder="http://localhost:3000"/>
+                    </setting>
+                    <setting string="Dashboard Public UUID"
+                             help="Public UUID from Metabase sharing link">
+                        <field name="metabase_dashboard_id"
+                               placeholder="e.g. 01d8c811-f13b-4fc4-af61-ce5d04eafce1"/>
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>

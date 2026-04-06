@@ -16,3 +16,12 @@ class ResConfigSettings(models.TransientModel):
              "Block: Show a warning and do not assign.\n"
              "Auto-create: Automatically create the new combination."
     )
+    metabase_url = fields.Char(
+        string="Metabase URL",
+        config_parameter='budget_segment.metabase_url',
+        default='http://localhost:3000',
+        help="Base URL of the Metabase instance (e.g. http://localhost:3000).")
+    metabase_dashboard_id = fields.Char(
+        string="Dashboard Public UUID",
+        config_parameter='budget_segment.metabase_dashboard_id',
+        help="Public UUID of the Metabase dashboard to embed in Odoo.")

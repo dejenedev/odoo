@@ -55,6 +55,18 @@
               action="action_budget_combination_trial_balance"
               sequence="36"/>
 
+    <!-- Metabase BI Dashboard -->
+    <record id="action_metabase_dashboard" model="ir.actions.client">
+        <field name="name">BI Dashboard</field>
+        <field name="tag">metabase_dashboard</field>
+    </record>
+
+    <menuitem id="menu_metabase_dashboard"
+              name="BI Dashboard"
+              parent="menu_budget_segment_root"
+              action="action_metabase_dashboard"
+              sequence="38"/>
+
     <!-- Payment Consolidation -->
     <menuitem id="menu_budget_payment_consolidation"
               name="Payment Consolidation"

@@ -13,6 +13,7 @@
     'license': 'LGPL-3',
     'depends': ['account'],
     'data': [
+        'data/metabase_defaults.xml',
         'security/ir.model.access.csv',
         'wizard/budget_combination_wizard_views.xml',
         'wizard/budget_payment_consolidation_views.xml',
@@ -27,6 +28,11 @@
         'views/res_config_settings_views.xml',
         'views/menu.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'budget_segment/static/src/js/metabase_action.js',
+        ],
+    },
     'installable': True,
     'application': True,
 }
