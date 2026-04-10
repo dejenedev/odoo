@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_pki_issue_cert_wizard_form" model="ir.ui.view">
+        <field name="name">pki.issue.cert.wizard.form</field>
+        <field name="model">pki.issue.cert.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Issue Certificate">
+                <group>
+                    <field name="certificate_id" readonly="1" invisible="1"/>
+                    <field name="user_password" password="True"/>
+                </group>
+                <div class="text-muted">
+                    Enter the user's Odoo login password. This will be used to encrypt
+                    their private signing key. The password is not stored.
+                </div>
+                <footer>
+                    <button name="action_issue" string="Issue Certificate"
+                            type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

@@ -23,6 +23,7 @@
     'data': [
         'security/pki_security.xml',
         'security/ir.model.access.csv',
+        'wizard/pki_issue_cert_wizard_views.xml',
         'wizard/pki_sign_wizard_views.xml',
         'wizard/pki_verify_wizard_views.xml',
         'views/pki_ca_views.xml',

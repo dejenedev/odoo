@@ -19,15 +19,15 @@ class PkiCertificateAuthority(models.Model):
 
     name = fields.Char(string="CA Name", required=True)
     private_key_pem = fields.Binary(
-        string="CA Private Key (Encrypted)", attachment=True,
+        string="CA Private Key (Encrypted)", attachment=False,
         help="RSA-2048 private key encrypted with system master key.")
     public_key_pem = fields.Binary(
-        string="CA Public Key", attachment=True)
+        string="CA Public Key", attachment=False)
     certificate_pem = fields.Binary(
-        string="CA Certificate", attachment=True,
+        string="CA Certificate", attachment=False,
         help="Self-signed X.509 CA certificate.")
     certificate_text = fields.Text(
-        string="Certificate Details", compute='_compute_certificate_text')
+        string="Certificate Details")
     serial_number = fields.Char(string="Serial Number", readonly=True)
     valid_from = fields.Datetime(string="Valid From", readonly=True)
     valid_to = fields.Datetime(string="Valid To", readonly=True)
@@ -44,31 +44,24 @@ class PkiCertificateAuthority(models.Model):
         string="Certificates Issued", compute='_compute_issued_count')
     key_size = fields.Integer(string="Key Size", default=2048, readonly=True)
 
-    @api.depends('certificate_pem')
-    def _compute_certificate_text(self):
-        for rec in self:
-            if rec.certificate_pem:
-                try:
-                    cert_bytes = base64.b64decode(rec.certificate_pem)
-                    cert = x509.load_pem_x509_certificate(cert_bytes)
-                    rec.certificate_text = (
-                        "Subject: %s\n"
-                        "Issuer: %s\n"
-                        "Serial: %s\n"
-                        "Valid: %s to %s\n"
-                        "Algorithm: %s"
-                    ) % (
-                        cert.subject.rfc4514_string(),
-                        cert.issuer.rfc4514_string(),
-                        cert.serial_number,
-                        cert.not_valid_before_utc,
-                        cert.not_valid_after_utc,
-                        cert.signature_hash_algorithm.name if cert.signature_hash_algorithm else 'N/A',
-                    )
-                except Exception:
-                    rec.certificate_text = _("Unable to parse certificate")
-            else:
-                rec.certificate_text = False
+    @staticmethod
+    def _format_certificate_text(cert, fingerprint=None):
+        """Format certificate details as human-readable text."""
+        return (
+            "Subject: %s\n"
+            "Issuer: %s\n"
+            "Serial: %s\n"
+            "Valid: %s to %s\n"
+            "Algorithm: %s%s"
+        ) % (
+            cert.subject.rfc4514_string(),
+            cert.issuer.rfc4514_string(),
+            cert.serial_number,
+            cert.not_valid_before_utc.replace(tzinfo=None),
+            cert.not_valid_after_utc.replace(tzinfo=None),
+            cert.signature_hash_algorithm.name if cert.signature_hash_algorithm else 'N/A',
+            ('\nFingerprint: %s' % fingerprint) if fingerprint else '',
+        )
 
     def _compute_issued_count(self):
         for rec in self:
@@ -180,8 +173,9 @@ class PkiCertificateAuthority(models.Model):
             'public_key_pem': base64.b64encode(public_pem),
             'certificate_pem': base64.b64encode(cert_pem),
             'serial_number': str(cert.serial_number),
-            'valid_from': cert.not_valid_before_utc,
-            'valid_to': cert.not_valid_after_utc,
+            'valid_from': cert.not_valid_before_utc.replace(tzinfo=None),
+            'valid_to': cert.not_valid_after_utc.replace(tzinfo=None),
+            'certificate_text': self._format_certificate_text(cert),
             'state': 'active',
             'key_size': 2048,
         })

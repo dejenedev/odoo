@@ -7,6 +7,11 @@
         <field name="arch" type="xml">
             <form string="User Certificate">
                 <header>
+                    <button name="action_open_issue_wizard"
+                            string="Issue Certificate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
                     <button name="action_suspend"
                             string="Suspend"
                             type="object"

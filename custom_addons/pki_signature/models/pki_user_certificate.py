@@ -2,6 +2,7 @@
 import base64
 import datetime
 import hashlib
+import logging
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -11,6 +12,8 @@ from cryptography.x509.oid import NameOID
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class PkiUserCertificate(models.Model):
@@ -24,13 +27,13 @@ class PkiUserCertificate(models.Model):
         'pki.certificate.authority', string="Certificate Authority",
         required=True, domain="[('state', '=', 'active')]")
     private_key_enc = fields.Binary(
-        string="Private Key (Encrypted)", attachment=True,
+        string="Private Key (Encrypted)", attachment=False,
         help="RSA private key encrypted with user's Odoo password.")
     certificate_pem = fields.Binary(
-        string="Certificate", attachment=True,
+        string="Certificate", attachment=False,
         help="X.509 certificate signed by the CA.")
     certificate_text = fields.Text(
-        string="Certificate Details", compute='_compute_certificate_text')
+        string="Certificate Details")
     serial_number = fields.Char(string="Serial Number", readonly=True)
     valid_from = fields.Datetime(string="Valid From", readonly=True)
     valid_to = fields.Datetime(string="Valid To", readonly=True)
@@ -57,31 +60,6 @@ class PkiUserCertificate(models.Model):
          'Certificate serial number must be unique.'),
     ]
 
-    @api.depends('certificate_pem')
-    def _compute_certificate_text(self):
-        for rec in self:
-            if rec.certificate_pem:
-                try:
-                    cert_bytes = base64.b64decode(rec.certificate_pem)
-                    cert = x509.load_pem_x509_certificate(cert_bytes)
-                    rec.certificate_text = (
-                        "Subject: %s\n"
-                        "Issuer: %s\n"
-                        "Serial: %s\n"
-                        "Valid: %s to %s\n"
-                        "Fingerprint: %s"
-                    ) % (
-                        cert.subject.rfc4514_string(),
-                        cert.issuer.rfc4514_string(),
-                        cert.serial_number,
-                        cert.not_valid_before_utc,
-                        cert.not_valid_after_utc,
-                        rec.fingerprint or 'N/A',
-                    )
-                except Exception:
-                    rec.certificate_text = _("Unable to parse certificate")
-            else:
-                rec.certificate_text = False
 
     @staticmethod
     def _derive_key_from_password(password, salt):
@@ -176,12 +154,35 @@ class PkiUserCertificate(models.Model):
             'private_key_enc': base64.b64encode(private_pem),
             'certificate_pem': base64.b64encode(cert_pem),
             'serial_number': str(cert.serial_number),
-            'valid_from': cert.not_valid_before_utc,
-            'valid_to': cert.not_valid_after_utc,
+            'valid_from': cert.not_valid_before_utc.replace(tzinfo=None),
+            'valid_to': cert.not_valid_after_utc.replace(tzinfo=None),
             'fingerprint': fingerprint,
             'key_salt': salt,
+            'certificate_text': self.env['pki.certificate.authority']._format_certificate_text(
+                cert, fingerprint),
             'state': 'active',
         })
+
+    def action_open_issue_wizard(self):
+        """Open wizard to capture user password and issue certificate."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Issue Certificate'),
+            'res_model': 'pki.issue.cert.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_certificate_id': self.id,
+            },
+        }
+
+    @staticmethod
+    def _decode_binary(value):
+        """Decode an Odoo Binary field (attachment=False) to raw bytes."""
+        if not value:
+            return None
+        return base64.b64decode(value)
 
     def load_private_key(self, password):
         """Decrypt and return the user's private key.
@@ -190,13 +191,14 @@ class PkiUserCertificate(models.Model):
         :returns: RSA private key object
         """
         self.ensure_one()
-        if not self.private_key_enc:
-            raise UserError(_("No private key found for this certificate."))
         if self.state != 'active':
             raise UserError(_("Certificate is not active (state: %s).") % self.state)
 
+        pem_bytes = self._decode_binary(self.private_key_enc)
+        if not pem_bytes:
+            raise UserError(_("No private key found for this certificate."))
+
         derived = self._derive_key_from_password(password, self.key_salt)
-        pem_bytes = base64.b64decode(self.private_key_enc)
         try:
             return serialization.load_pem_private_key(pem_bytes, password=derived)
         except (ValueError, TypeError):
@@ -205,9 +207,9 @@ class PkiUserCertificate(models.Model):
     def load_certificate(self):
         """Load and return the X.509 certificate object."""
         self.ensure_one()
-        if not self.certificate_pem:
+        cert_bytes = self._decode_binary(self.certificate_pem)
+        if not cert_bytes:
             raise UserError(_("No certificate found."))
-        cert_bytes = base64.b64decode(self.certificate_pem)
         return x509.load_pem_x509_certificate(cert_bytes)
 
     def re_encrypt_private_key(self, old_password, new_password):
