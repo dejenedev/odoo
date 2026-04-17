@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- AME User: can submit documents for approval -->
+    <record id="group_ame_user" model="res.groups">
+        <field name="name">AME User</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- AME Approver: can approve/reject/delegate -->
+    <record id="group_ame_approver" model="res.groups">
+        <field name="name">AME Approver</field>
+        <field name="implied_ids" eval="[(4, ref('group_ame_user'))]"/>
+    </record>
+
+    <!-- AME Admin: full config access -->
+    <record id="group_ame_admin" model="res.groups">
+        <field name="name">AME Administrator</field>
+        <field name="implied_ids" eval="[(4, ref('group_ame_approver'))]"/>
+        <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+    </record>
+
+    <!-- AME Auditor: read-only access to everything -->
+    <record id="group_ame_auditor" model="res.groups">
+        <field name="name">AME Auditor</field>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Record rules -->
+    <record id="ame_approval_line_approver_rule" model="ir.rule">
+        <field name="name">AME: Approvers see own lines</field>
+        <field name="model_id" ref="model_ame_approval_line"/>
+        <field name="domain_force">[
+            '|',
+            ('approver_id', '=', user.id),
+            ('instance_id.requester_id', '=', user.id)
+        ]</field>
+        <field name="groups" eval="[(4, ref('group_ame_user'))]"/>
+    </record>
+
+    <record id="ame_approval_line_admin_rule" model="ir.rule">
+        <field name="name">AME: Admins see all lines</field>
+        <field name="model_id" ref="model_ame_approval_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_ame_admin')), (4, ref('group_ame_auditor'))]"/>
+    </record>
+
+</odoo>

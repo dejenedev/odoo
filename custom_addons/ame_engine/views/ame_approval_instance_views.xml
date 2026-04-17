@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_approval_instance_form" model="ir.ui.view">
+        <field name="name">ame.approval.instance.form</field>
+        <field name="model">ame.approval.instance</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger"
+                            invisible="state not in ('draft', 'in_progress')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="res_name"/>
+                            <field name="transaction_type_id"/>
+                            <field name="flow_pattern"/>
+                            <field name="requester_id"/>
+                        </group>
+                        <group>
+                            <field name="submitted_date"/>
+                            <field name="completed_date"/>
+                            <field name="company_id"/>
+                            <field name="progress_pct" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Approval Chain">
+                            <field name="line_ids" nolabel="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="priority"/>
+                                    <field name="rule_id"/>
+                                    <field name="approver_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'approved'"
+                                           decoration-warning="state == 'waiting'"
+                                           decoration-danger="state == 'rejected'"
+                                           decoration-muted="state in ('pending', 'skipped')"/>
+                                    <field name="activated_date"/>
+                                    <field name="decided_date"/>
+                                    <field name="comment"/>
+                                    <field name="delegated_to_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_approval_instance_list" model="ir.ui.view">
+        <field name="name">ame.approval.instance.list</field>
+        <field name="model">ame.approval.instance</field>
+        <field name="arch" type="xml">
+            <list create="false">
+                <field name="name"/>
+                <field name="res_name"/>
+                <field name="transaction_type_id"/>
+                <field name="requester_id"/>
+                <field name="submitted_date"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'approved'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="progress_pct" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_ame_approval_instance_search" model="ir.ui.view">
+        <field name="name">ame.approval.instance.search</field>
+        <field name="model">ame.approval.instance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/><field name="requester_id"/><field name="transaction_type_id"/>
+                <filter string="In Progress" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Approved" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <group>
+                    <filter string="Transaction Type" name="group_tt" domain="[]" context="{'group_by': 'transaction_type_id'}"/>
+                    <filter string="State" name="group_state" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_ame_approval_instance" model="ir.actions.act_window">
+        <field name="name">Approval Instances</field>
+        <field name="res_model">ame.approval.instance</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_ame_approval_instance_search"/>
+    </record>
+</odoo>

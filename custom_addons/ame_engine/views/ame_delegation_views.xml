@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_delegation_form" model="ir.ui.view">
+        <field name="name">ame.delegation.form</field>
+        <field name="model">ame.delegation</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group><field name="delegator_id"/><field name="delegate_id"/><field name="delegation_type"/></group>
+                        <group><field name="transaction_type_id" invisible="delegation_type != 'per_transaction'"/><field name="start_date"/><field name="end_date" invisible="delegation_type == 'permanent'"/><field name="company_id"/><field name="active"/></group>
+                    </group>
+                    <field name="reason" placeholder="Reason for delegation..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_delegation_list" model="ir.ui.view">
+        <field name="name">ame.delegation.list</field>
+        <field name="model">ame.delegation</field>
+        <field name="arch" type="xml">
+            <list><field name="delegator_id"/><field name="delegate_id"/><field name="delegation_type"/><field name="start_date"/><field name="end_date"/><field name="active"/></list>
+        </field>
+    </record>
+    <record id="action_ame_delegation" model="ir.actions.act_window">
+        <field name="name">Delegations</field>
+        <field name="res_model">ame.delegation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

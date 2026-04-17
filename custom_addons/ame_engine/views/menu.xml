@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Root menu -->
+    <menuitem id="menu_ame_root"
+              name="Approvals (AME)"
+              web_icon="ame_engine,static/description/icon.png"
+              sequence="95"/>
+
+    <!-- Dashboard -->
+    <menuitem id="menu_ame_dashboard"
+              name="My Approvals"
+              parent="menu_ame_root"
+              action="action_ame_dashboard"
+              sequence="5"/>
+
+    <!-- All Instances -->
+    <menuitem id="menu_ame_instances"
+              name="All Approval Requests"
+              parent="menu_ame_root"
+              action="action_ame_approval_instance"
+              sequence="10"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_ame_config"
+              name="Configuration"
+              parent="menu_ame_root"
+              sequence="50"/>
+
+    <menuitem id="menu_ame_transaction_type"
+              name="Transaction Types"
+              parent="menu_ame_config"
+              action="action_ame_transaction_type"
+              sequence="10"/>
+
+    <menuitem id="menu_ame_attribute"
+              name="Attributes"
+              parent="menu_ame_config"
+              action="action_ame_attribute"
+              sequence="20"/>
+
+    <menuitem id="menu_ame_condition"
+              name="Conditions"
+              parent="menu_ame_config"
+              action="action_ame_condition"
+              sequence="30"/>
+
+    <menuitem id="menu_ame_rule"
+              name="Rules"
+              parent="menu_ame_config"
+              action="action_ame_rule"
+              sequence="40"/>
+
+    <menuitem id="menu_ame_approver_action"
+              name="Approver Actions"
+              parent="menu_ame_config"
+              action="action_ame_approver_action"
+              sequence="50"/>
+
+    <menuitem id="menu_ame_approval_group"
+              name="Approval Groups"
+              parent="menu_ame_config"
+              action="action_ame_approval_group"
+              sequence="60"/>
+
+    <menuitem id="menu_ame_delegation"
+              name="Delegations"
+              parent="menu_ame_config"
+              action="action_ame_delegation"
+              sequence="70"/>
+
+    <menuitem id="menu_ame_substitution"
+              name="Substitution Rules"
+              parent="menu_ame_config"
+              action="action_ame_substitution"
+              sequence="80"/>
+
+</odoo>

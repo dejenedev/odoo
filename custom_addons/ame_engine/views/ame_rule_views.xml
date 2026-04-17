@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_rule_form" model="ir.ui.view">
+        <field name="name">ame.rule.form</field>
+        <field name="model">ame.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="transaction_type_id"/>
+                            <field name="approver_action_id"/>
+                        </group>
+                        <group>
+                            <field name="priority"/>
+                            <field name="sequence"/>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                            <field name="company_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Conditions (AND Logic)">
+                        <field name="condition_ids" widget="many2many_tags" nolabel="1" colspan="2"
+                               options="{'no_create': False}"
+                               domain="[('transaction_type_id', '=', transaction_type_id)]"/>
+                        <div class="text-muted" colspan="2">
+                            All conditions must be TRUE for this rule to fire. For OR logic, create separate rules.
+                        </div>
+                    </group>
+                    <field name="description" placeholder="Rule description..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_rule_list" model="ir.ui.view">
+        <field name="name">ame.rule.list</field>
+        <field name="model">ame.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="priority"/>
+                <field name="name"/>
+                <field name="transaction_type_id"/>
+                <field name="condition_ids" widget="many2many_tags"/>
+                <field name="approver_action_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_ame_rule" model="ir.actions.act_window">
+        <field name="name">Rules</field>
+        <field name="res_model">ame.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

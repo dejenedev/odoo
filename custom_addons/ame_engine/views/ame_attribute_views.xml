@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_attribute_form" model="ir.ui.view">
+        <field name="name">ame.attribute.form</field>
+        <field name="model">ame.attribute</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="display_name_custom"/>
+                            <field name="transaction_type_id"/>
+                            <field name="model_id" invisible="1"/>
+                            <field name="attribute_type"/>
+                            <field name="value_type"/>
+                        </group>
+                        <group>
+                            <field name="field_id" invisible="attribute_type != 'static'" required="attribute_type == 'static'"/>
+                            <field name="field_path" invisible="attribute_type != 'relational'" required="attribute_type == 'relational'"/>
+                            <field name="line_field_id" invisible="attribute_type != 'line_item'" required="attribute_type == 'line_item'"/>
+                            <field name="line_item_field_path" invisible="attribute_type != 'line_item'"/>
+                            <field name="line_aggregate" invisible="attribute_type != 'line_item'"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group invisible="attribute_type != 'computed'">
+                        <field name="python_expression" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
+                    </group>
+                    <field name="description" placeholder="Description..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_attribute_list" model="ir.ui.view">
+        <field name="name">ame.attribute.list</field>
+        <field name="model">ame.attribute</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="transaction_type_id"/><field name="attribute_type"/><field name="value_type"/><field name="field_path"/></list>
+        </field>
+    </record>
+    <record id="action_ame_attribute" model="ir.actions.act_window">
+        <field name="name">Attributes</field>
+        <field name="res_model">ame.attribute</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

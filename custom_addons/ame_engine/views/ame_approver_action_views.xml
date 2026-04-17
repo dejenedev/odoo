@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_approver_action_form" model="ir.ui.view">
+        <field name="name">ame.approver.action.form</field>
+        <field name="model">ame.approver.action</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="action_type"/>
+                            <field name="require_all"/>
+                        </group>
+                        <group>
+                            <field name="user_id" invisible="action_type != 'specific_user'" required="action_type == 'specific_user'"/>
+                            <field name="approval_group_id" invisible="action_type != 'approval_group'" required="action_type == 'approval_group'"/>
+                            <field name="hierarchy_levels" invisible="action_type != 'supervisory_hierarchy'"/>
+                            <field name="min_authority_level" invisible="action_type not in ('job_level_authority',)"/>
+                            <field name="company_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group invisible="action_type != 'dynamic'">
+                        <field name="python_expression" widget="ace" options="{'mode': 'python'}" nolabel="1" colspan="2"/>
+                    </group>
+                    <field name="description" placeholder="Description..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_approver_action_list" model="ir.ui.view">
+        <field name="name">ame.approver.action.list</field>
+        <field name="model">ame.approver.action</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="action_type"/><field name="user_id"/><field name="approval_group_id"/><field name="require_all"/></list>
+        </field>
+    </record>
+    <record id="action_ame_approver_action" model="ir.actions.act_window">
+        <field name="name">Approver Actions</field>
+        <field name="res_model">ame.approver.action</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

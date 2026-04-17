@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="mail_activity_type_ame_approval" model="mail.activity.type">
+        <field name="name">AME Approval</field>
+        <field name="summary">Approval Required</field>
+        <field name="icon">fa-check-circle</field>
+        <field name="delay_count">3</field>
+        <field name="delay_unit">days</field>
+        <field name="category">default</field>
+    </record>
+
+</odoo>

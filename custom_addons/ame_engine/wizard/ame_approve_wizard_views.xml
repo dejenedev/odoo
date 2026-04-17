@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_approve_wizard_form" model="ir.ui.view">
+        <field name="name">ame.approve.wizard.form</field>
+        <field name="model">ame.approve.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Approve / Reject">
+                <group>
+                    <field name="line_id" invisible="1"/>
+                    <field name="action_type" invisible="1"/>
+                    <field name="comment" placeholder="Optional comment..."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

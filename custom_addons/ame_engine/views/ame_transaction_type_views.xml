@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ame_transaction_type_form" model="ir.ui.view">
+        <field name="name">ame.transaction.type.form</field>
+        <field name="model">ame.transaction.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="e.g. Purchase Order Approval"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="model_id" options="{'no_create': True}"/>
+                            <field name="model_name" invisible="1"/>
+                            <field name="flow_pattern"/>
+                            <field name="auto_approve_on_no_rules"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="escalation_hours"/>
+                            <field name="escalation_action"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Description..."/>
+                    <notebook>
+                        <page string="Attributes"><field name="attribute_ids" nolabel="1">
+                            <list><field name="name"/><field name="attribute_type"/><field name="value_type"/><field name="field_path"/></list>
+                        </field></page>
+                        <page string="Rules"><field name="rule_ids" nolabel="1">
+                            <list><field name="priority"/><field name="name"/><field name="condition_ids" widget="many2many_tags"/><field name="approver_action_id"/><field name="active"/></list>
+                        </field></page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_ame_transaction_type_list" model="ir.ui.view">
+        <field name="name">ame.transaction.type.list</field>
+        <field name="model">ame.transaction.type</field>
+        <field name="arch" type="xml">
+            <list><field name="name"/><field name="model_id"/><field name="flow_pattern"/><field name="company_id"/><field name="active"/></list>
+        </field>
+    </record>
+    <record id="action_ame_transaction_type" model="ir.actions.act_window">
+        <field name="name">Transaction Types</field>
+        <field name="res_model">ame.transaction.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

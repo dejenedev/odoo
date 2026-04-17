@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard: My Pending Approvals -->
+    <record id="view_ame_dashboard_list" model="ir.ui.view">
+        <field name="name">ame.approval.line.dashboard</field>
+        <field name="model">ame.approval.line</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false" edit="false"
+                  decoration-danger="is_overdue">
+                <field name="instance_id"/>
+                <field name="res_model" optional="hide"/>
+                <field name="rule_id"/>
+                <field name="priority"/>
+                <field name="approver_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'approved'"
+                       decoration-warning="state == 'waiting'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="activated_date"/>
+                <field name="sla_deadline" optional="show"/>
+                <field name="sla_deadline" optional="hide"/>
+                <field name="comment" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_ame_dashboard_search" model="ir.ui.view">
+        <field name="name">ame.approval.line.dashboard.search</field>
+        <field name="model">ame.approval.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="approver_id"/><field name="instance_id"/>
+                <filter string="My Pending" name="my_pending"
+                        domain="[('approver_id', '=', uid), ('state', '=', 'waiting')]"/>
+                <filter string="Overdue" name="overdue"
+                        domain="[('sla_deadline', '&lt;', (context_today()).strftime('%Y-%m-%d %H:%M:%S')), ('sla_deadline', '!=', False), ('state', '=', 'waiting')]"/>
+                <filter string="All Waiting" name="all_waiting"
+                        domain="[('state', '=', 'waiting')]"/>
+                <separator/>
+                <group>
+                    <filter string="Approver" name="group_approver" domain="[]" context="{'group_by': 'approver_id'}"/>
+                    <filter string="Priority" name="group_priority" domain="[]" context="{'group_by': 'priority'}"/>
+                    <filter string="State" name="group_state" domain="[]" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_ame_dashboard" model="ir.actions.act_window">
+        <field name="name">My Approvals</field>
+        <field name="res_model">ame.approval.line</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_ame_dashboard_search"/>
+        <field name="context">{'search_default_my_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No pending approvals</p>
+            <p>Approval requests assigned to you will appear here.</p>
+        </field>
+    </record>
+</odoo>
