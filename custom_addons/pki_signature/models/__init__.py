@@ -5,3 +5,4 @@ from . import pki_approval_rule
 from . import pki_signature_line
 from . import pki_signature_mixin
 from . import res_users
+from . import ir_actions_report
