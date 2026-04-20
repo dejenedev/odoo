@@ -9,13 +9,19 @@
                     <group>
                         <group>
                             <field name="attribute_id"/>
+                            <field name="attribute_value_type" invisible="1"/>
                             <field name="transaction_type_id" invisible="1"/>
                             <field name="operator"/>
                         </group>
                         <group>
-                            <field name="value_float" invisible="attribute_id.value_type not in ('float',)"/>
-                            <field name="value_float_2" invisible="operator != 'between'"/>
-                            <field name="value_char" invisible="attribute_id.value_type in ('float',)"/>
+                            <field name="value_float"
+                                   invisible="attribute_value_type != 'float'"
+                                   required="attribute_value_type == 'float'"/>
+                            <field name="value_float_2"
+                                   invisible="operator != 'between'"/>
+                            <field name="value_char"
+                                   invisible="attribute_value_type == 'float'"
+                                   required="attribute_value_type != 'float'"/>
                             <field name="active"/>
                         </group>
                     </group>

@@ -11,7 +11,7 @@
     """,
     'author': 'dejenedev',
     'license': 'LGPL-3',
-    'depends': ['account'],
+    'depends': ['account', 'ame_engine'],
     'data': [
         'data/metabase_defaults.xml',
         'security/ir.model.access.csv',

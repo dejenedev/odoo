@@ -9,8 +9,20 @@
                     <group>
                         <group><field name="name"/><field name="min_approvals"/><field name="company_id"/><field name="active"/></group>
                     </group>
-                    <field name="member_ids" widget="many2many_tags"/>
-                    <field name="description" placeholder="Description..."/>
+                    <notebook>
+                        <page string="Members">
+                            <field name="member_ids" nolabel="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="login"/>
+                                    <field name="email"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="description" placeholder="Description..."/>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

@@ -5,13 +5,42 @@
         <field name="model">ame.approve.wizard</field>
         <field name="arch" type="xml">
             <form string="Approve / Reject">
-                <group>
-                    <field name="line_id" invisible="1"/>
-                    <field name="action_type" invisible="1"/>
+                <field name="line_id" invisible="1"/>
+                <field name="action_type" invisible="1"/>
+                <field name="pki_available" invisible="1"/>
+
+                <!-- Approve: PKI signing -->
+                <group invisible="action_type != 'approve'">
+                    <group invisible="not pki_available">
+                        <field name="password" password="True"
+                               required="pki_available and action_type == 'approve'"/>
+                    </group>
+                    <group invisible="not pki_available">
+                        <field name="visual_signature" widget="signature"/>
+                    </group>
+                    <div invisible="pki_available" class="text-muted">
+                        No PKI certificate found. Approval will proceed without digital signature.
+                    </div>
+                </group>
+
+                <!-- Reject: require reason -->
+                <group invisible="action_type != 'reject'">
+                    <field name="comment" placeholder="Reason for rejection..."
+                           required="action_type == 'reject'"/>
+                </group>
+
+                <!-- Optional comment for approve -->
+                <group invisible="action_type != 'approve'">
                     <field name="comment" placeholder="Optional comment..."/>
                 </group>
+
                 <footer>
-                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button name="action_confirm" type="object" class="btn-primary"
+                            string="Approve &amp; Sign"
+                            invisible="action_type != 'approve'"/>
+                    <button name="action_confirm" type="object" class="btn-danger"
+                            string="Reject"
+                            invisible="action_type != 'reject'"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

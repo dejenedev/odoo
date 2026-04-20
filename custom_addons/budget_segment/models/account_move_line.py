@@ -4,7 +4,8 @@ from odoo.exceptions import UserError, ValidationError
 
 
 class AccountMove(models.Model):
-    _inherit = 'account.move'
+    _inherit = ['account.move', 'ame.approval.mixin']
+    _name = 'account.move'
 
     submitted_for_payment = fields.Boolean(
         string="Submitted for Payment", default=False, copy=False,
@@ -14,8 +15,11 @@ class AccountMove(models.Model):
         'account.move', string="Clearing Entry", copy=False, readonly=True,
         help="The inter-company clearing journal entry created on submission.")
     budget_payment_state = fields.Selection([
-        ('not_submitted', 'Not Submitted'),
-        ('submitted', 'Submitted'),
+        ('draft', 'Draft'),
+        ('pending_approval', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('submitted', 'Submitted for Payment'),
         ('paid', 'Paid'),
     ], string="Budget Payment Status", compute='_compute_budget_payment_state',
         store=True)
@@ -23,18 +27,28 @@ class AccountMove(models.Model):
         string="Is Paying Org Company",
         compute='_compute_is_paying_org_company')
 
-    @api.depends('submitted_for_payment', 'payment_state', 'move_type')
+    @api.depends('submitted_for_payment', 'payment_state', 'move_type',
+                 'state', 'ame_state')
     def _compute_budget_payment_state(self):
         for move in self:
             if move.move_type not in ('in_invoice', 'in_refund'):
                 move.budget_payment_state = False
-            elif move.submitted_for_payment:
-                # Still awaiting MoF payment (clearing reconciled but not yet disbursed)
-                move.budget_payment_state = 'submitted'
-            elif move.payment_state in ('paid', 'in_payment', 'reversed'):
+            elif not move.submitted_for_payment and move.payment_state in ('paid', 'in_payment'):
+                # Fully paid (MoF has processed — submitted_for_payment was reset)
                 move.budget_payment_state = 'paid'
+            elif move.submitted_for_payment:
+                # Submitted to MoF, awaiting consolidated payment
+                move.budget_payment_state = 'submitted'
+            elif move.ame_state == 'rejected':
+                move.budget_payment_state = 'rejected'
+            elif move.ame_state == 'approved':
+                move.budget_payment_state = 'approved'
+            elif move.ame_state == 'pending':
+                move.budget_payment_state = 'pending_approval'
+            elif move.state == 'draft':
+                move.budget_payment_state = 'draft'
             else:
-                move.budget_payment_state = 'not_submitted'
+                move.budget_payment_state = 'draft'
 
     def _compute_is_paying_org_company(self):
         paying_org = self.env['budget.organization'].sudo().search([
@@ -48,6 +62,21 @@ class AccountMove(models.Model):
 
     def action_post(self):
         for move in self:
+            # Block direct posting of vendor bills — must go through AME approval
+            if move.move_type in ('in_invoice', 'in_refund') and not self.env.context.get('ame_auto_post'):
+                tt = self.env['ame.transaction.type'].get_for_model(
+                    'account.move', move.company_id.id)
+                if tt:
+                    if move.ame_state == 'approved':
+                        pass  # Approved — allow posting (shouldn't normally reach here)
+                    else:
+                        raise UserError(_(
+                            "Vendor bills require approval before posting.\n\n"
+                            "Please use the 'Request Approval' button to submit "
+                            "'%s' for approval. The bill will be posted automatically "
+                            "once all approvers have approved."
+                        ) % move.name)
+
             zero_lines = move.line_ids.filtered(
                 lambda l: l.debit == 0 and l.credit == 0
                 and l.display_type not in ('line_section', 'line_note')
@@ -70,6 +99,16 @@ class AccountMove(models.Model):
                     "for expense account lines.\n\nMissing on: %s"
                 ) % (move.name, accounts))
         return super().action_post()
+
+    def _on_ame_approved(self):
+        """Callback when AME approval is complete — auto-post the bill."""
+        for move in self:
+            if move.state == 'draft' and move.move_type in ('in_invoice', 'in_refund'):
+                move.with_context(ame_auto_post=True).action_post()
+
+    def _on_ame_rejected(self):
+        """Callback when AME approval is rejected."""
+        pass  # Bill stays in draft, user can modify and resubmit
 
     def action_submit_for_payment(self):
         """Submit posted vendor bills for consolidated payment.

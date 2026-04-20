@@ -21,14 +21,20 @@
                             <field name="active"/>
                         </group>
                     </group>
-                    <group string="Conditions (AND Logic)">
-                        <field name="condition_ids" widget="many2many_tags" nolabel="1" colspan="2"
-                               options="{'no_create': False}"
-                               domain="[('transaction_type_id', '=', transaction_type_id)]"/>
-                        <div class="text-muted" colspan="2">
-                            All conditions must be TRUE for this rule to fire. For OR logic, create separate rules.
-                        </div>
-                    </group>
+                    <separator string="Conditions (AND Logic)"/>
+                    <div class="text-muted mb-2">
+                        All conditions must be TRUE for this rule to fire. For OR logic, create separate rules.
+                    </div>
+                    <field name="condition_ids" nolabel="1"
+                           domain="[('transaction_type_id', '=', transaction_type_id)]">
+                        <list>
+                            <field name="name"/>
+                            <field name="attribute_id"/>
+                            <field name="operator"/>
+                            <field name="value_float"/>
+                            <field name="value_char"/>
+                        </list>
+                    </field>
                     <field name="description" placeholder="Rule description..."/>
                 </sheet>
             </form>

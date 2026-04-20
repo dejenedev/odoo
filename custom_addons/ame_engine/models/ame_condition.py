@@ -14,6 +14,8 @@ class AmeCondition(models.Model):
     name = fields.Char(compute='_compute_name', store=True)
     attribute_id = fields.Many2one(
         'ame.attribute', string="Attribute", required=True, ondelete='cascade')
+    attribute_value_type = fields.Selection(
+        related='attribute_id.value_type', string="Attribute Data Type")
     transaction_type_id = fields.Many2one(
         related='attribute_id.transaction_type_id', store=True)
     active = fields.Boolean(default=True)

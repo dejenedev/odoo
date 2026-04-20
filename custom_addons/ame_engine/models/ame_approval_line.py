@@ -48,12 +48,30 @@ class AmeApprovalLine(models.Model):
     comment = fields.Text(string="Comment")
     delegated_to_id = fields.Many2one('res.users', string="Delegated To")
 
+    # PKI Digital Signature (populated when PKI module is installed)
+    pki_certificate_id = fields.Many2one(
+        'pki.user.certificate', string="PKI Certificate", readonly=True)
+    pki_document_hash = fields.Char(
+        string="Document Hash", readonly=True)
+    pki_digital_signature = fields.Binary(
+        string="Digital Signature", readonly=True)
+    pki_visual_signature = fields.Binary(
+        string="Visual Signature")
+    pki_signed_by_name = fields.Char(
+        string="Signed By", readonly=True)
+    pki_is_digitally_signed = fields.Boolean(
+        compute='_compute_pki_is_digitally_signed')
+
     # Convenience
     res_model = fields.Char(related='instance_id.res_model', store=True)
     res_id = fields.Many2oneReference(
         related='instance_id.res_id', store=True, model_field='res_model')
     company_id = fields.Many2one(
         related='instance_id.company_id', store=True)
+
+    def _compute_pki_is_digitally_signed(self):
+        for line in self:
+            line.pki_is_digitally_signed = bool(line.pki_digital_signature)
 
     @api.depends('activated_date', 'sla_hours')
     def _compute_sla_deadline(self):
@@ -178,18 +196,37 @@ class AmeApprovalLine(models.Model):
             _logger.warning("AME activity scheduling failed: %s", e)
 
     def _send_notification(self):
-        """Post chatter message to notify the approver."""
+        """Post chatter message and notify the approver via inbox/email."""
         try:
+            from markupsafe import Markup
             record = self.env[self.res_model].browse(self.res_id)
-            if record.exists() and hasattr(record, 'message_post'):
-                record.message_post(
-                    body=_("Approval requested from <b>%s</b> (Step: %s)") % (
-                        self.approver_id.name,
-                        self.rule_id.name or 'N/A'),
-                    subject=_("Approval Required"),
-                    partner_ids=self.approver_id.partner_id.ids,
-                    subtype_xmlid='mail.mt_note',
-                )
+            if not record.exists() or not hasattr(record, 'message_post'):
+                return
+
+            # Add approver as follower so they get inbox notifications
+            if hasattr(record, 'message_subscribe'):
+                record.message_subscribe(
+                    partner_ids=self.approver_id.partner_id.ids)
+
+            doc_name = record.display_name or ''
+            body = Markup(
+                "<p>Dear <b>%s</b>,</p>"
+                "<p>Your approval is required for: <b>%s</b></p>"
+                "<p>Step: %s<br/>"
+                "Requested by: %s</p>"
+            ) % (
+                self.approver_id.name,
+                doc_name,
+                self.rule_id.name or 'N/A',
+                self.instance_id.requester_id.name or '',
+            )
+            record.message_post(
+                body=body,
+                subject=_("Approval Required: %s") % doc_name,
+                partner_ids=self.approver_id.partner_id.ids,
+                subtype_xmlid='mail.mt_comment',
+                message_type='comment',
+            )
         except Exception as e:
             _logger.warning("AME notification failed: %s", e)
 

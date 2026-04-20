@@ -54,9 +54,18 @@ class AmeAttribute(models.Model):
         'ir.model.fields', string="Lines Field",
         domain="[('model_id', '=', model_id), ('ttype', '=', 'one2many')]",
         help="One2many field pointing to line items")
+    line_model_id = fields.Many2one(
+        'ir.model', string="Line Model",
+        compute='_compute_line_model_id')
+    line_item_field_id = fields.Many2one(
+        'ir.model.fields', string="Line Item Field",
+        domain="[('model_id', '=', line_model_id), ('store', '=', True), "
+               "('ttype', 'not in', ('one2many', 'many2many', 'binary'))]",
+        help="Field on each line item to aggregate")
     line_item_field_path = fields.Char(
         string="Line Item Path",
-        help="Field path on each line, e.g. 'price_subtotal'")
+        compute='_compute_line_item_field_path', store=True, readonly=False,
+        help="Auto-populated from Line Item Field selection")
     line_aggregate = fields.Selection([
         ('sum', 'Sum'),
         ('min', 'Minimum'),
@@ -66,6 +75,20 @@ class AmeAttribute(models.Model):
         ('all', 'All (Boolean AND)'),
         ('count', 'Count'),
     ], string="Aggregation", default='sum')
+
+    @api.depends('line_field_id')
+    def _compute_line_model_id(self):
+        for rec in self:
+            if rec.line_field_id and rec.line_field_id.relation:
+                line_model = self.env['ir.model']._get(rec.line_field_id.relation)
+                rec.line_model_id = line_model.id if line_model else False
+            else:
+                rec.line_model_id = False
+
+    @api.depends('line_item_field_id')
+    def _compute_line_item_field_path(self):
+        for rec in self:
+            rec.line_item_field_path = rec.line_item_field_id.name if rec.line_item_field_id else False
 
     # Return type
     value_type = fields.Selection([
