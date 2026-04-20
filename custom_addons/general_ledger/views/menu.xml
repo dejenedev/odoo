@@ -74,4 +74,11 @@
               action="action_budget_payment_consolidation"
               sequence="40"/>
 
+    <!-- Payment History -->
+    <menuitem id="menu_budget_consolidated_payment"
+              name="Payment History"
+              parent="menu_budget_segment_root"
+              action="action_budget_consolidated_payment"
+              sequence="42"/>
+
 </odoo>

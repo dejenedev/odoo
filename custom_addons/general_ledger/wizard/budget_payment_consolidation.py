@@ -87,6 +87,20 @@ class BudgetPaymentConsolidation(models.TransientModel):
                 if line.selected
             )
 
+    @api.model
+    def default_get(self, fields_list):
+        """Check that current company is the paying organization."""
+        res = super().default_get(fields_list)
+        paying_org = self.env['budget.organization'].search([
+            ('is_paying_org', '=', True),
+        ], limit=1)
+        if paying_org and paying_org.company_id != self.env.company:
+            raise UserError(_(
+                "Payment Consolidation is only available for the paying "
+                "organization (%s). Please switch to company '%s'."
+            ) % (paying_org.name, paying_org.company_id.name))
+        return res
+
     def action_load_bills(self):
         """Load submitted bills into wizard lines."""
         self.ensure_one()
@@ -149,6 +163,8 @@ class BudgetPaymentConsolidation(models.TransientModel):
             raise UserError(_("Please select at least one bill to pay."))
         if not self.payment_journal_id:
             raise UserError(_("Please select a payment journal."))
+        if not self.source_bank_account_id:
+            raise UserError(_("Please select a source bank account for payment."))
 
         paying_org = self.paying_org_id
         paying_company = paying_org.company_id
@@ -208,6 +224,27 @@ class BudgetPaymentConsolidation(models.TransientModel):
                 bill = self.env['account.move'].sudo().browse(line.bill_id)
                 if bill.exists():
                     bill.write({'submitted_for_payment': False})
+
+        # Create persistent payment record
+        payment_line_vals = []
+        for line in selected_lines:
+            payment_line_vals.append((0, 0, {
+                'bill_name': line.bill_name,
+                'partner_name': line.partner_name,
+                'company_name': line.company_name,
+                'amount': line.amount_residual,
+                'bill_id': line.bill_id,
+            }))
+        self.env['budget.consolidated.payment'].create({
+            'paying_org_id': self.paying_org_id.id,
+            'payment_journal_id': self.payment_journal_id.id,
+            'source_bank_account_id': self.source_bank_account_id.id,
+            'payment_date': fields.Date.context_today(self),
+            'total_amount': self.total_amount,
+            'bill_count': len(selected_lines),
+            'payment_move_ids': [(6, 0, created_moves.ids)],
+            'line_ids': payment_line_vals,
+        })
 
         self.write({
             'state': 'done',

@@ -148,9 +148,12 @@ class AccountMove(models.Model):
 
             amount = move.amount_residual
 
+            # Suppress Odoo's "Invoice Paid" tracking during clearing
+            move_ctx = move.with_context(mail_notrack=True)
+
             # Create clearing entry: DR Payable, CR Clearing
             clearing_move = self.env['account.move'].with_context(
-                default_move_type='entry'
+                default_move_type='entry', mail_notrack=True,
             ).create({
                 'move_type': 'entry',
                 'journal_id': bill_org.clearing_journal_id.id,
@@ -173,17 +176,26 @@ class AccountMove(models.Model):
             clearing_move.action_post()
 
             # Reconcile clearing entry payable line with bill's payable line
-            # Filter by the exact same account as the bill's payable line
+            # Use tracking_disable to suppress "Invoice Paid" tracking on the move
             bill_payable_account = payable_line[0].account_id
             clearing_payable = clearing_move.line_ids.filtered(
                 lambda l: l.account_id == bill_payable_account
             )
-            (payable_line + clearing_payable).reconcile()
+            (payable_line + clearing_payable).with_context(
+                tracking_disable=True).reconcile()
 
-            move.write({
+            move.with_context(tracking_disable=True).write({
                 'submitted_for_payment': True,
                 'clearing_move_id': clearing_move.id,
             })
+
+            # Post our own tracking message instead
+            move.message_post(
+                body=_("Submitted for consolidated payment. "
+                       "Clearing entry: %s") % clearing_move.name,
+                subject=_("Submitted for Payment"),
+                subtype_xmlid='mail.mt_note',
+            )
 
     def action_unsubmit_for_payment(self):
         """Withdraw bill from consolidated payment queue.

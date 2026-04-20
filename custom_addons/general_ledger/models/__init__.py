@@ -7,3 +7,4 @@ from . import res_config_settings
 from . import budget_organization
 from . import budget_trial_balance
 from . import budget_trial_balance_combination
+from . import budget_consolidated_payment

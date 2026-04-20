@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_budget_consolidated_payment_form" model="ir.ui.view">
+        <field name="name">budget.consolidated.payment.form</field>
+        <field name="model">budget.consolidated.payment</field>
+        <field name="arch" type="xml">
+            <form string="Consolidated Payment" create="false" edit="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="paying_org_id"/>
+                            <field name="payment_journal_id"/>
+                            <field name="source_bank_account_id"/>
+                            <field name="created_by_id"/>
+                        </group>
+                        <group>
+                            <field name="payment_date"/>
+                            <field name="total_amount"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="bill_count"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Bills Paid">
+                            <field name="line_ids" nolabel="1">
+                                <list create="false" delete="false">
+                                    <field name="bill_name" string="Bill"/>
+                                    <field name="partner_name" string="Vendor"/>
+                                    <field name="company_name" string="Company"/>
+                                    <field name="amount" string="Amount" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Journal Entries">
+                            <field name="payment_move_ids" nolabel="1">
+                                <list create="false" delete="false">
+                                    <field name="name" string="Entry"/>
+                                    <field name="ref" string="Reference"/>
+                                    <field name="journal_id"/>
+                                    <field name="date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_budget_consolidated_payment_list" model="ir.ui.view">
+        <field name="name">budget.consolidated.payment.list</field>
+        <field name="model">budget.consolidated.payment</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="name"/>
+                <field name="paying_org_id"/>
+                <field name="source_bank_account_id"/>
+                <field name="payment_date"/>
+                <field name="bill_count"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="created_by_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_budget_consolidated_payment_search" model="ir.ui.view">
+        <field name="name">budget.consolidated.payment.search</field>
+        <field name="model">budget.consolidated.payment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="paying_org_id"/>
+                <field name="source_bank_account_id"/>
+                <separator/>
+                <filter string="Date" name="filter_date" date="payment_date"/>
+                <separator/>
+                <group>
+                    <filter string="Organization" name="group_org" domain="[]"
+                            context="{'group_by': 'paying_org_id'}"/>
+                    <filter string="Bank Account" name="group_bank" domain="[]"
+                            context="{'group_by': 'source_bank_account_id'}"/>
+                    <filter string="Date" name="group_date" domain="[]"
+                            context="{'group_by': 'payment_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_budget_consolidated_payment" model="ir.actions.act_window">
+        <field name="name">Payment History</field>
+        <field name="res_model">budget.consolidated.payment</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_budget_consolidated_payment_search"/>
+        <field name="domain">[]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No consolidated payments yet
+            </p>
+            <p>
+                Payment records will appear here after processing
+                bills through Payment Consolidation.
+            </p>
+        </field>
+    </record>
+
+</odoo>

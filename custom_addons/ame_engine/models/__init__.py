@@ -17,3 +17,4 @@ from . import ame_substitution
 
 # Phase 3: Mixin
 from . import ame_approval_mixin
+from . import ame_view_injector
