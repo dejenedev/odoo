@@ -13,7 +13,7 @@ class AmeViewInjector(models.AbstractModel):
     @api.model
     def _inject_approval_views(self):
         """Create inherited form views that add AME approval buttons
-        for all models that have AME Transaction Types configured."""
+        for models with AME Transaction Types — only if not already present."""
         try:
             transaction_types = self.env['ame.transaction.type'].sudo().search([
                 ('active', '=', True),
@@ -26,16 +26,19 @@ class AmeViewInjector(models.AbstractModel):
             if not model_name:
                 continue
 
-            # Check if we already created an AME view for this model
-            xmlid = 'ame_engine.view_%s_ame_buttons' % model_name.replace('.', '_')
-            existing = self.env['ir.model.data'].sudo().search([
-                ('module', '=', 'ame_engine'),
-                ('name', '=', 'view_%s_ame_buttons' % model_name.replace('.', '_')),
-            ], limit=1)
-            if existing:
+            # Skip if ANY view already has AME buttons for this model
+            self.env.cr.execute("""
+                SELECT COUNT(*) FROM ir_ui_view
+                WHERE model = %s AND arch_db::text LIKE %s
+            """, (model_name, '%action_submit_for_ame_approval%'))
+            count = self.env.cr.fetchone()[0]
+            if count > 0:
+                _logger.info(
+                    "AME: Skipping %s - %d view(s) already have approval buttons",
+                    model_name, count)
                 continue
 
-            # Find the primary form view for this model
+            # Find the primary form view
             primary_view = self.env['ir.ui.view'].sudo().search([
                 ('model', '=', model_name),
                 ('type', '=', 'form'),
@@ -44,7 +47,11 @@ class AmeViewInjector(models.AbstractModel):
             if not primary_view:
                 continue
 
-            # Check if the view has a <header> element
+            # Check if the form has a <header> element
+            if '//header' not in (primary_view.arch or '') and '<header' not in (primary_view.arch or ''):
+                _logger.info("AME: Skipping %s - form view has no <header>", model_name)
+                continue
+
             arch = """
 <form>
     <xpath expr="//header" position="inside">
@@ -82,14 +89,8 @@ class AmeViewInjector(models.AbstractModel):
                     'arch': arch,
                     'priority': 999,
                 })
-                # Create ir.model.data for the xmlid
-                self.env['ir.model.data'].sudo().create({
-                    'module': 'ame_engine',
-                    'name': 'view_%s_ame_buttons' % model_name.replace('.', '_'),
-                    'model': 'ir.ui.view',
-                    'res_id': view.id,
-                    'noupdate': False,
-                })
-                _logger.info("AME: Injected approval buttons into %s form view", model_name)
+                _logger.info(
+                    "AME: Injected approval buttons into %s form view (view id=%s)",
+                    model_name, view.id)
             except Exception as e:
                 _logger.warning("AME: Failed to inject view for %s: %s", model_name, e)

@@ -16,6 +16,14 @@
                 <field name="ame_state" invisible="1"/>
                 <field name="ame_is_current_approver" invisible="1"/>
                 <field name="ame_is_fully_approved" invisible="1"/>
+                <field name="ame_hide_cancel" invisible="1"/>
+            </xpath>
+            <!-- Hide Cancel buttons when AME approval pending -->
+            <xpath expr="//button[@name='button_cancel'][@data-hotkey='x'][1]" position="attributes">
+                <attribute name="invisible">not id or state != 'draft' or move_type != 'entry' or ame_hide_cancel</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_cancel'][@data-hotkey='x'][2]" position="attributes">
+                <attribute name="invisible">not id or state != 'draft' or move_type == 'entry' or ame_hide_cancel</attribute>
             </xpath>
             <!-- AME Approval buttons -->
             <xpath expr="//header" position="inside">

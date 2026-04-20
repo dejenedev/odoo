@@ -7,6 +7,39 @@ class AccountMove(models.Model):
     _inherit = ['account.move', 'ame.approval.mixin']
     _name = 'account.move'
 
+    hide_post_button = fields.Boolean(
+        compute='_compute_hide_post_button_override')
+
+    @api.depends('state', 'auto_post', 'date', 'ame_state', 'ame_instance_id')
+    def _compute_hide_post_button_override(self):
+        """Override to hide Post/Confirm when AME approval is pending."""
+        for move in self:
+            # Standard logic
+            move.hide_post_button = (
+                move.state != 'draft'
+                or (move.auto_post != 'no'
+                    and move.date
+                    and move.date > fields.Date.context_today(move))
+            )
+            # AME: hide if pending approval or if vendor bill needs approval
+            if not move.hide_post_button and move.ame_instance_id:
+                if move.ame_state in ('pending', 'rejected'):
+                    move.hide_post_button = True
+            if not move.hide_post_button and move.move_type in ('in_invoice', 'in_refund'):
+                tt = self.env['ame.transaction.type'].get_for_model(
+                    'account.move', move.company_id.id)
+                if tt and move.ame_state != 'approved':
+                    move.hide_post_button = True
+
+    ame_hide_cancel = fields.Boolean(
+        compute='_compute_ame_hide_cancel')
+
+    @api.depends('ame_state', 'ame_instance_id')
+    def _compute_ame_hide_cancel(self):
+        for move in self:
+            move.ame_hide_cancel = bool(
+                move.ame_instance_id and move.ame_state == 'pending')
+
     submitted_for_payment = fields.Boolean(
         string="Submitted for Payment", default=False, copy=False,
         help="When checked, this bill is visible to the paying organization "
@@ -61,20 +94,23 @@ class AccountMove(models.Model):
             )
 
     def action_post(self):
-        for move in self:
-            # Block direct posting of vendor bills — must go through AME approval
-            if move.move_type in ('in_invoice', 'in_refund') and not self.env.context.get('ame_auto_post'):
-                tt = self.env['ame.transaction.type'].get_for_model(
-                    'account.move', move.company_id.id)
-                if tt:
-                    if move.ame_state == 'approved':
-                        pass  # Approved — allow posting (shouldn't normally reach here)
-                    else:
+        if not self.env.context.get('ame_auto_post'):
+            for move in self:
+                # Block posting if AME approval is required but not yet complete
+                if move.ame_instance_id and move.ame_state not in ('approved', 'none', False):
+                    raise UserError(_(
+                        "Cannot post '%s': approval is pending.\n\n"
+                        "The entry will be posted automatically once approved."
+                    ) % move.name)
+                # Block direct posting of vendor bills — must go through AME
+                if move.move_type in ('in_invoice', 'in_refund'):
+                    tt = self.env['ame.transaction.type'].get_for_model(
+                        'account.move', move.company_id.id)
+                    if tt and move.ame_state != 'approved':
                         raise UserError(_(
                             "Vendor bills require approval before posting.\n\n"
                             "Please use the 'Request Approval' button to submit "
-                            "'%s' for approval. The bill will be posted automatically "
-                            "once all approvers have approved."
+                            "'%s' for approval."
                         ) % move.name)
 
             zero_lines = move.line_ids.filtered(
@@ -99,6 +135,15 @@ class AccountMove(models.Model):
                     "for expense account lines.\n\nMissing on: %s"
                 ) % (move.name, accounts))
         return super().action_post()
+
+    def button_cancel(self):
+        for move in self:
+            if move.ame_instance_id and move.ame_state == 'pending':
+                raise UserError(_(
+                    "Cannot cancel '%s': approval is pending.\n\n"
+                    "Please cancel the approval first."
+                ) % move.name)
+        return super().button_cancel()
 
     def _on_ame_approved(self):
         """Callback when AME approval is complete — auto-post the bill."""

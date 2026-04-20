@@ -122,9 +122,13 @@ class AmeTransactionType(models.Model):
 
             _logger.info("AME: Auto-injecting approval fields onto %s", model_name)
             # Inject mixin fields onto the model
-            for fname, field in Mixin._fields.items():
-                if fname not in Model._fields:
-                    Model._add_field(fname, field)
+            try:
+                for fname, field in Mixin._fields.items():
+                    if fname not in Model._fields:
+                        Model._add_field(fname, field)
+            except (AttributeError, TypeError) as e:
+                _logger.warning("AME: Cannot inject fields on %s: %s", model_name, e)
+                continue
 
             # Inject mixin methods
             for attr_name in dir(Mixin):

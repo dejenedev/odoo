@@ -40,15 +40,16 @@ class AmeCondition(models.Model):
     value_float_2 = fields.Float(string="Upper Bound",
                                  help="Used for 'between' operator")
 
-    @api.depends('attribute_id.name', 'operator', 'value_char', 'value_float')
+    @api.depends('attribute_id.name', 'operator', 'value_char', 'value_float', 'value_float_2')
     def _compute_name(self):
         for rec in self:
             attr = rec.attribute_id.display_name_custom or rec.attribute_id.name or '?'
-            op = rec.operator or '?'
+            op = dict(rec._fields['operator'].selection).get(rec.operator, '?')
             if rec.attribute_id.value_type == 'float':
-                val = str(rec.value_float)
                 if rec.operator == 'between':
-                    val = '%s - %s' % (rec.value_float, rec.value_float_2)
+                    val = '{:,.2f} - {:,.2f}'.format(rec.value_float, rec.value_float_2)
+                else:
+                    val = '{:,.2f}'.format(rec.value_float)
             else:
                 val = rec.value_char or ''
             rec.name = '%s %s %s' % (attr, op, val)

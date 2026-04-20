@@ -7,23 +7,32 @@
             <form>
                 <sheet>
                     <group>
-                        <group>
+                        <group string="Condition">
                             <field name="attribute_id"/>
                             <field name="attribute_value_type" invisible="1"/>
                             <field name="transaction_type_id" invisible="1"/>
                             <field name="operator"/>
+                            <field name="active"/>
                         </group>
-                        <group>
-                            <field name="value_float"
-                                   invisible="attribute_value_type != 'float'"
-                                   required="attribute_value_type == 'float'"/>
-                            <field name="value_float_2"
+                        <group string="Value">
+                            <field name="value_float" string="Value"
+                                   invisible="attribute_value_type != 'float' or operator == 'between'"
+                                   required="attribute_value_type == 'float' and operator != 'between'"/>
+                            <field name="value_float" string="From (Lower Bound)"
                                    invisible="operator != 'between'"/>
+                            <field name="value_float_2" string="To (Upper Bound)"
+                                   invisible="operator != 'between'"
+                                   required="operator == 'between'"/>
                             <field name="value_char"
                                    invisible="attribute_value_type == 'float'"
                                    required="attribute_value_type != 'float'"/>
-                            <field name="active"/>
                         </group>
+                    </group>
+                    <group invisible="operator != 'between'">
+                        <div class="text-muted">
+                            Condition will match when the attribute value is between
+                            the lower and upper bounds (inclusive).
+                        </div>
                     </group>
                 </sheet>
             </form>

@@ -216,7 +216,7 @@ class BudgetPaymentConsolidation(models.TransientModel):
                     }),
                 ],
             })
-            payment_move.action_post()
+            # Don't post yet — will be posted after AME approval
             created_moves |= payment_move
 
             # Mark bills as no longer submitted

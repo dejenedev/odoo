@@ -5,7 +5,28 @@
         <field name="name">budget.consolidated.payment.form</field>
         <field name="model">budget.consolidated.payment</field>
         <field name="arch" type="xml">
-            <form string="Consolidated Payment" create="false" edit="false">
+            <form string="Consolidated Payment" create="false">
+                <header>
+                    <field name="ame_state" invisible="1"/>
+                    <field name="ame_is_current_approver" invisible="1"/>
+                    <button name="action_submit_for_ame_approval"
+                            string="Request Approval"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft' or ame_state not in ('none', False)"/>
+                    <button name="action_ame_approve"
+                            string="Approve"
+                            type="object"
+                            class="btn-success"
+                            invisible="ame_state != 'pending' or not ame_is_current_approver"/>
+                    <button name="action_ame_reject"
+                            string="Reject"
+                            type="object"
+                            class="btn-danger"
+                            invisible="ame_state != 'pending' or not ame_is_current_approver"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,done"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>

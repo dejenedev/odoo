@@ -6,7 +6,7 @@ class BudgetConsolidatedPayment(models.Model):
     _name = 'budget.consolidated.payment'
     _description = 'Consolidated Payment Record'
     _order = 'payment_date desc, id desc'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'ame.approval.mixin']
 
     name = fields.Char(string="Reference", compute='_compute_name', store=True)
     paying_org_id = fields.Many2one(
@@ -23,8 +23,9 @@ class BudgetConsolidatedPayment(models.Model):
         'res.currency', default=lambda self: self.env.company.currency_id)
     bill_count = fields.Integer(string="Bills Paid", readonly=True)
     state = fields.Selection([
+        ('draft', 'Draft'),
         ('done', 'Done'),
-    ], default='done', readonly=True)
+    ], default='draft', tracking=True)
     company_id = fields.Many2one(
         'res.company', string="Company",
         default=lambda self: self.env.company, required=True)
@@ -48,6 +49,23 @@ class BudgetConsolidatedPayment(models.Model):
             org = rec.paying_org_id.code or 'PAY'
             date = rec.payment_date or ''
             rec.name = '%s/%s/%s' % (org, date, rec.id or 'New')
+
+    def action_confirm(self):
+        """Confirm the consolidated payment — post the journal entries."""
+        self.ensure_one()
+        for move in self.payment_move_ids:
+            if move.state == 'draft':
+                move.action_post()
+        self.write({'state': 'done'})
+
+    def _on_ame_approved(self):
+        """AME callback — auto-confirm when approved."""
+        for rec in self:
+            rec.action_confirm()
+
+    def _on_ame_rejected(self):
+        """AME callback — handle rejection."""
+        pass
 
 
 class BudgetConsolidatedPaymentLine(models.Model):
