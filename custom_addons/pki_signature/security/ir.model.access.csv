@@ -16,3 +16,5 @@ access_pki_verify_wizard_user,pki.verify.wizard.user,model_pki_verify_wizard,pki
 access_pki_verify_wizard_line_admin,pki.verify.wizard.line.admin,model_pki_verify_wizard_line,pki_signature.group_pki_admin,1,1,1,1
 access_pki_verify_wizard_line_user,pki.verify.wizard.line.user,model_pki_verify_wizard_line,pki_signature.group_pki_user,1,1,1,1
 access_pki_issue_cert_wizard_admin,pki.issue.cert.wizard.admin,model_pki_issue_cert_wizard,pki_signature.group_pki_admin,1,1,1,1
+access_pki_signing_config_admin,pki.signing.config.admin,model_pki_signing_config,pki_signature.group_pki_admin,1,1,1,1
+access_pki_signing_config_user,pki.signing.config.user,model_pki_signing_config,pki_signature.group_pki_user,1,0,0,0

@@ -29,6 +29,7 @@
         'views/pki_ca_views.xml',
         'views/pki_user_certificate_views.xml',
         'views/pki_approval_rule_views.xml',
+        'views/pki_signing_config_views.xml',
         'views/pki_signature_line_views.xml',
         'views/res_config_settings_views.xml',
         'views/menu.xml',

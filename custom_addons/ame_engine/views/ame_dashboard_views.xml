@@ -5,10 +5,8 @@
         <field name="name">ame.approval.line.dashboard</field>
         <field name="model">ame.approval.line</field>
         <field name="arch" type="xml">
-            <list create="false" delete="false" edit="false"
-                  decoration-danger="is_overdue">
+            <list create="false" delete="false" edit="false">
                 <field name="instance_id"/>
-                <field name="res_model" optional="hide"/>
                 <field name="rule_id"/>
                 <field name="priority"/>
                 <field name="approver_id"/>
@@ -17,9 +15,26 @@
                        decoration-warning="state == 'waiting'"
                        decoration-danger="state == 'rejected'"/>
                 <field name="activated_date"/>
-                <field name="sla_deadline" optional="show"/>
                 <field name="sla_deadline" optional="hide"/>
-                <field name="comment" optional="hide"/>
+                <button name="action_open_document"
+                        string="Open"
+                        type="object"
+                        icon="fa-external-link"
+                        title="Open Document"/>
+                <button name="action_quick_approve"
+                        string="Approve"
+                        type="object"
+                        icon="fa-check"
+                        class="text-success"
+                        title="Approve"
+                        invisible="state != 'waiting'"/>
+                <button name="action_quick_reject"
+                        string="Reject"
+                        type="object"
+                        icon="fa-times"
+                        class="text-danger"
+                        title="Reject"
+                        invisible="state != 'waiting'"/>
             </list>
         </field>
     </record>
@@ -31,8 +46,6 @@
                 <field name="approver_id"/><field name="instance_id"/>
                 <filter string="My Pending" name="my_pending"
                         domain="[('approver_id', '=', uid), ('state', '=', 'waiting')]"/>
-                <filter string="Overdue" name="overdue"
-                        domain="[('sla_deadline', '&lt;', (context_today()).strftime('%Y-%m-%d %H:%M:%S')), ('sla_deadline', '!=', False), ('state', '=', 'waiting')]"/>
                 <filter string="All Waiting" name="all_waiting"
                         domain="[('state', '=', 'waiting')]"/>
                 <separator/>

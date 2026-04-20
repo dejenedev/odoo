@@ -25,4 +25,10 @@
               action="action_pki_approval_rule"
               sequence="30"/>
 
+    <menuitem id="menu_pki_signing_config"
+              name="Digital Signature Settings"
+              parent="menu_pki_root"
+              action="action_pki_signing_config"
+              sequence="5"/>
+
 </odoo>

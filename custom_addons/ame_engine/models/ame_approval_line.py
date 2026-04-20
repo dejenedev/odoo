@@ -69,6 +69,47 @@ class AmeApprovalLine(models.Model):
     company_id = fields.Many2one(
         related='instance_id.company_id', store=True)
 
+    def action_open_document(self):
+        """Open the source document."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self.res_model,
+            'res_id': self.res_id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_quick_approve(self):
+        """Open the approve wizard from the dashboard."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Approve'),
+            'res_model': 'ame.approve.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_line_id': self.id,
+                'default_action_type': 'approve',
+            },
+        }
+
+    def action_quick_reject(self):
+        """Open the reject wizard from the dashboard."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Reject'),
+            'res_model': 'ame.approve.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_line_id': self.id,
+                'default_action_type': 'reject',
+            },
+        }
+
     def _compute_pki_is_digitally_signed(self):
         for line in self:
             line.pki_is_digitally_signed = bool(line.pki_digital_signature)
@@ -220,7 +261,7 @@ class AmeApprovalLine(models.Model):
                 self.rule_id.name or 'N/A',
                 self.instance_id.requester_id.name or '',
             )
-            record.message_post(
+            record.with_context(mail_notify_author=True).message_post(
                 body=body,
                 subject=_("Approval Required: %s") % doc_name,
                 partner_ids=self.approver_id.partner_id.ids,
