@@ -287,6 +287,6 @@ class AccountMoveLine(models.Model):
             'res_id': self.budget_combination_id.id,
             'view_mode': 'form',
             'view_id': self.env.ref(
-                'budget_segment.view_budget_code_combination_popup_form').id,
+                'general_ledger.view_budget_code_combination_popup_form').id,
             'target': 'new',
         }

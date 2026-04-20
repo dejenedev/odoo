@@ -25,7 +25,7 @@ class MetabaseDashboard extends Component {
     setup() {
         this.state = useState({ url: "" });
         onWillStart(async () => {
-            this.state.url = await rpc("/budget_segment/metabase_url", {});
+            this.state.url = await rpc("/general_ledger/metabase_url", {});
         });
     }
 }

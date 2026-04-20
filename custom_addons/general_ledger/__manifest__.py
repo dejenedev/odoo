@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Budget Segment Code Combination',
-    'version': '19.0.1.3.0',
-    'category': 'Accounting/Budget',
-    'summary': 'Multi-segment budget code combination for chart of accounts',
+    'name': 'General Ledger',
+    'version': '19.0.2.0.0',
+    'category': 'Accounting',
+    'summary': 'General Ledger with budget segments, payment consolidation, and BI dashboard',
     'description': """
-        Define configurable budget segments (Organization, Geographic, Program,
-        Project, Fund Source, Economic, Counterparty, etc.) with hierarchical
-        values, and create code combinations for budget tracking on transactions.
+        General Ledger module for Odoo 19:
+        - Multi-segment budget code combinations (Organization, Fund Source, Economic, etc.)
+        - Hierarchical segment values with Chart of Accounts integration
+        - Organization management with inter-company payment consolidation
+        - Payment submission workflow with approval integration (AME)
+        - Trial Balance by Segment and by Code Combination
+        - Embedded Metabase BI dashboard
     """,
     'author': 'dejenedev',
     'license': 'LGPL-3',
@@ -30,7 +34,7 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'budget_segment/static/src/js/metabase_action.js',
+            'general_ledger/static/src/js/metabase_action.js',
         ],
     },
     'installable': True,

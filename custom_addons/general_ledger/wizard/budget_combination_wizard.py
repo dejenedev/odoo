@@ -175,7 +175,7 @@ class BudgetCombinationWizard(models.TransientModel):
                 })
             else:
                 auto_mode = self.env['ir.config_parameter'].sudo().get_param(
-                    'budget_segment.auto_create_combination', 'block'
+                    'general_ledger.auto_create_combination', 'block'
                 )
                 if auto_mode == 'auto':
                     combo_vals = {

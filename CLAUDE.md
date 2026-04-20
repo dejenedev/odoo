@@ -1,7 +1,7 @@
 # Budget Segment Project - Knowledge Repository
 
 ## Project Overview
-Odoo 19 custom addon (`custom_addons/budget_segment`) for multi-segment budget code combinations integrated with the Chart of Accounts. Author: dejenedev. Version: 19.0.1.2.0. Depends on: `account`.
+Odoo 19 custom addon (`custom_addons/general_ledger`) for multi-segment budget code combinations integrated with the Chart of Accounts. Author: dejenedev. Version: 19.0.1.2.0. Depends on: `account`.
 
 **Purpose:** Define configurable budget segments (Organization, Geographic, Program, Project, Fund Source, Economic, Counterparty) with hierarchical values, and create code combinations for budget tracking on journal entries and invoices. Includes organization management with payment consolidation.
 

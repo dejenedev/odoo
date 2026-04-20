@@ -10,7 +10,7 @@ class ResConfigSettings(models.TransientModel):
          ('auto', 'Auto-create - Create new combination if not found')],
         string="Budget Code Combination Mode",
         default='block',
-        config_parameter='budget_segment.auto_create_combination',
+        config_parameter='general_ledger.auto_create_combination',
         help="Controls what happens when a user selects segments that don't match "
              "any existing code combination.\n"
              "Block: Show a warning and do not assign.\n"
@@ -18,10 +18,10 @@ class ResConfigSettings(models.TransientModel):
     )
     metabase_url = fields.Char(
         string="Metabase URL",
-        config_parameter='budget_segment.metabase_url',
+        config_parameter='general_ledger.metabase_url',
         default='http://localhost:3000',
         help="Base URL of the Metabase instance (e.g. http://localhost:3000).")
     metabase_dashboard_id = fields.Char(
         string="Dashboard Public UUID",
-        config_parameter='budget_segment.metabase_dashboard_id',
+        config_parameter='general_ledger.metabase_dashboard_id',
         help="Public UUID of the Metabase dashboard to embed in Odoo.")
