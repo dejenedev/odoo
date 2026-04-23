@@ -29,6 +29,7 @@
         'views/budget_trial_balance_views.xml',
         'views/budget_trial_balance_combination_views.xml',
         'views/budget_consolidated_payment_views.xml',
+        'views/account_tax_views.xml',
         'views/account_move_views.xml',
         'views/res_config_settings_views.xml',
         'views/menu.xml',

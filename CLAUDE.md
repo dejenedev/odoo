@@ -1,152 +1,141 @@
-# Budget Segment Project - Knowledge Repository
+# General Ledger Project - Knowledge Repository
 
 ## Project Overview
-Odoo 19 custom addon (`custom_addons/general_ledger`) for multi-segment budget code combinations integrated with the Chart of Accounts. Author: dejenedev. Version: 19.0.1.2.0. Depends on: `account`.
+Three Odoo 19 custom addons at `custom_addons/`:
+- **`general_ledger`** (v19.0.2.0.0) — GL, budget segments, payment consolidation, Metabase BI
+- **`ame_engine`** (v19.0.1.0.0) — Approval Management Engine (Oracle AME inspired)
+- **`pki_signature`** (v19.0.1.0.0) — PKI digital signatures with certificate management
 
-**Purpose:** Define configurable budget segments (Organization, Geographic, Program, Project, Fund Source, Economic, Counterparty) with hierarchical values, and create code combinations for budget tracking on journal entries and invoices. Includes organization management with payment consolidation.
+Author: dejenedev. Branch: `19.0`. Database: `odoo19`.
 
 ---
 
-## Module Architecture
+## Module: general_ledger
 
 ### Models
 
 | Model | File | Purpose |
 |-------|------|---------|
-| `budget.organization` | `models/budget_organization.py` | Organization entity linked 1:1 to `res.company`. Holds segment assignments, paying org flag, bank accounts, payment journal, clearing account/journal for inter-company payments. |
-| `budget.segment.type` | `models/budget_segment_type.py` | Segment categories. Has `is_economic`, `is_organization`, `level_ids`, `value_ids`. |
-| `budget.segment.level` | `models/budget_segment_type.py` | Hierarchical levels within a segment type (level_number, digit_count, is_leaf). |
-| `budget.segment.value` | `models/budget_segment_value.py` | Hierarchical values within a segment. Self-referencing parent/child. Auto-syncs with `account.account` for economic segments. |
-| `budget.code.combination` | `models/budget_code_combination.py` | Unique combination of segment values. Has `line_ids`, `date_from`, `date_to`. |
-| `budget.code.combination.line` | `models/budget_code_combination.py` | One segment value per segment type within a combination. |
-| `account.move.line` (inherited) | `models/account_move_line.py` | Adds `budget_combination_id` and wizard button to journal items. |
-| `res.config.settings` (inherited) | `models/res_config_settings.py` | `budget_auto_create_combination` setting (block/auto). |
+| `budget.organization` | `models/budget_organization.py` | Organization entity linked 1:1 to `res.company`. Paying org flag, bank accounts, clearing account/journal. |
+| `budget.segment.type` | `models/budget_segment_type.py` | Segment categories. `is_economic`, `is_organization`, `level_ids`, `value_ids`. |
+| `budget.segment.level` | `models/budget_segment_type.py` | Hierarchical levels within a segment type. |
+| `budget.segment.value` | `models/budget_segment_value.py` | Hierarchical values. Auto-syncs with `account.account` for economic segments. |
+| `budget.code.combination` | `models/budget_code_combination.py` | Unique combination of segment values. |
+| `budget.consolidated.payment` | `models/budget_consolidated_payment.py` | Persistent payment history records with AME mixin. |
+| `account.move` (inherited) | `models/account_move_line.py` | AME mixin, budget payment state, approval workflow, payment submission. |
+| `account.move.line` (inherited) | `models/account_move_line.py` | `budget_combination_id`, allowed combinations filtering. |
+| `account.tax` (inherited) | `models/account_tax.py` | `override_account_from_bill` flag for tax account override. |
+| `res.config.settings` (inherited) | `models/res_config_settings.py` | Metabase URL/UUID settings. |
 
-### Wizards
-| Model | File | Purpose |
-|-------|------|---------|
-| `budget.combination.wizard` | `wizard/budget_combination_wizard.py` | Modal for selecting segment values and finding/creating combinations. Supports partial search with org filtering. |
-| `budget.combination.wizard.line` | `wizard/budget_combination_wizard.py` | One line per segment type. Has `allowed_value_ids` computed field for org filtering. |
-| `budget.payment.consolidation` | `wizard/budget_payment_consolidation.py` | Payment consolidation wizard for paying organization. |
+### Key Features
 
-### Views — Segment Values (TWO SEPARATE FORMS)
-| View ID | Type | Purpose |
-|---------|------|---------|
-| `view_budget_segment_value_form` | Form | Non-economic segment values (no accounting fields) |
-| `view_budget_segment_value_list` | List | Non-economic segment values list |
-| `view_budget_segment_value_economic_form` | Form | Economic segment values (with Accounting tab, Linked Account) |
-| `view_budget_segment_value_economic_list` | List | Economic segment values list |
-| `view_budget_segment_value_search` | Search | Shared search view for both |
+#### Budget Code Combination Filtering
+- **Organization filter**: Always applied — only combinations matching company's org segment
+- **Economic filter**: Only combinations matching the line's account (via economic segment value)
+- **Intersection**: Both filters AND-ed — must match both org AND account
+- **No match**: If account has no economic segment → no combinations shown
+- Budget code **mandatory** for expense (`expense`), revenue (`income`), and direct cost (`expense_direct_cost`) account types
 
-### Menus (Accounting > Configuration > Budget Segments)
+#### Tax Line Budget Code Propagation
+- When a budget code is set on an invoice line, related tax lines automatically get updated
+- **`override_account_from_bill`** flag on `account.tax`:
+  - **Enabled**: Tax line account replaced with invoice line's account + same budget code
+  - **Disabled**: Tax line keeps its own account but inherits the invoice line's budget code
+- Propagation happens at: save, "Request Approval", and posting
+
+#### Payment Submission Workflow
+- States: Draft → Pending Approval → Approved → Submitted → Paid
+- Ribbons: PENDING APPROVAL (blue), APPROVED (blue), REJECTED (red), SUBMITTED (yellow), PAID (green)
+- "Confirm" button hidden for vendor bills — must go through AME approval
+- Post/Cancel buttons blocked during pending approval
+- Auto-post on AME approval via `_on_ame_approved()` callback
+- "Submit for Payment" only available after AME approval
+
+#### Payment Consolidation
+- Source bank account validation required
+- Paying organization restriction (non-paying orgs get error)
+- Persistent `budget.consolidated.payment` records (Payment History menu)
+- Payment entries created in draft — auto-posted after AME approval
+- "Invoice Paid" tracking suppressed via `tracking_disable` context
+
+### Menus (Invoicing > Configuration > GL Settings)
 1. Organizations (seq 5)
 2. Segment Types (seq 10)
-3. Segment Values (seq 20) — non-economic
+3. Segment Values (seq 20)
 4. Economic Segment Values (seq 25)
 5. Code Combinations (seq 30)
-6. Payment Consolidation (seq 40)
-
-### Security
-- `account_account_manager`: Full CRUD on all models.
-- `account_account_invoice`: Read-only on config models; full CRUD on wizard models.
-
----
-
-## Key Relationships
-```
-budget.organization
-  ├── company_id → res.company (1:1, unique)
-  ├── segment_value_ids → budget.segment.value (allowed org codes)
-  ├── bank_account_ids → res.partner.bank
-  ├── payment_journal_id → account.journal
-  ├── clearing_account_id → account.account (inter-company clearing)
-  └── clearing_journal_id → account.journal (for clearing entries)
-
-budget.segment.type
-  ├── is_economic (Boolean) — links to Chart of Accounts
-  ├── is_organization (Boolean) — used for org filtering
-  ├── level_ids → budget.segment.level
-  └── value_ids → budget.segment.value
-
-budget.segment.value (hierarchical, self-referencing)
-  └── account_id → account.account (auto-synced for economic segments)
-
-budget.code.combination
-  └── line_ids → budget.code.combination.line
-                    ├── segment_type_id → budget.segment.type
-                    └── segment_value_id → budget.segment.value (must be is_last_level=True)
-
-account.move.line
-  └── budget_combination_id → budget.code.combination
-```
+6. Trial Balance by Segment (seq 35)
+7. Trial Balance by Code Combination (seq 36)
+8. BI Dashboard — Metabase (seq 38)
+9. Payment Consolidation (seq 40)
+10. Payment History (seq 42)
 
 ---
 
-## Organization System
+## Module: ame_engine
 
-### Architecture
-- **Multi-company**: Each organization = separate `res.company`
-- **`budget.organization`**: Separate model linked 1:1 to `res.company`
-- Segment type has `is_organization=True` flag to identify org segments
-- Organizations are assigned specific segment values — only those are accessible in the budget wizard
+### 5 Core Building Blocks
+1. **Transaction Type** (`ame.transaction.type`) — Registers which Odoo model uses AME
+2. **Attribute** (`ame.attribute`) — Extracts runtime values: static, relational, computed (safe_eval), line-item aggregate
+3. **Condition** (`ame.condition`) — Boolean expressions: =, !=, >, <, >=, <=, in, not_in, between, contains
+4. **Rule** (`ame.rule`) — Combines conditions (AND) + assigns approver action. Validates mutually exclusive conditions.
+5. **Approver Action** (`ame.approver.action`) — Resolves WHO: specific user, approval group, supervisory hierarchy, job level, dynamic Python
 
-### Paying Organization
-- One org flagged `is_paying_org=True` (constraint: only one globally)
-- Has `bank_account_ids` and `payment_journal_id` for consolidated payments
-- Payment Consolidation wizard: loads unpaid bills across all companies, uses inter-company clearing to pay and reconcile
+### Runtime Models
+- `ame.approval.instance` — State machine: draft → in_progress → approved/rejected/cancelled
+- `ame.approval.line` — Per-approver tracking with SLA, PKI signing fields
+- `ame.approval.log` — Immutable audit trail (no write/unlink)
+- `ame.delegation` — User-initiated delegation (permanent, date range, per transaction)
+- `ame.substitution` — Admin-configured auto-substitution on absence
 
-### Inter-Company Clearing
-- Each organization has `clearing_account_id` and `clearing_journal_id`
-- Avoids cross-company journal conflicts by creating separate entries per company
-- **Bill's company side** (e.g. MoE): Clearing entry DR Accounts Payable, CR Clearing Account → auto-reconciles with bill (bill shows Paid)
-- **Paying company side** (e.g. MoF): Payment entry DR Clearing Account, CR Bank → records actual disbursement
-- Both orgs must have clearing account + journal configured before consolidation
+### Auto-Integration
+- `_register_hook()` reads Transaction Types, dynamically injects mixin fields onto configured models
+- `ame.view.injector` creates inherited form views with approval buttons (skips if already defined)
+- No code changes needed per model — just create Transaction Type + Rules
 
-### Budget Wizard Filtering
-- `allowed_value_ids` computed on wizard lines
-- For org segments: restricted to values in current company's `budget.organization.segment_value_ids`
-- For other segments: all last-level values
-- Supports partial search: fill only economic segment → shows matching combinations filtered by org
+### PKI Integration
+- Approve wizard checks `pki.signing.config` for the document model
+- If configured: requires password + visual signature for digital signing
+- If not configured: approval proceeds without PKI (comment only)
+
+### Flow Patterns
+- Serial, Parallel, Serial-Parallel Hybrid, First Responder
+
+### Escalation
+- Hourly cron checks SLA deadlines
+- Actions: remind, escalate to manager, auto-approve, notify admin
 
 ---
 
-## Data Flows
+## Module: pki_signature
 
-### Budget-Tracked Transaction
-1. User creates Journal Entry/Invoice with line items
-2. Clicks budget wizard button (fa-search) on a line
-3. Wizard loads all segment types, pre-selects economic segment by matching account
-4. Organization segment filtered to current company's allowed values
-5. Partial search: shows matching combinations; or full search with auto-create
-6. "Confirm & Assign" writes combination to the move line
+### Models
+- `pki.certificate.authority` — System-wide CA (RSA-2048, self-signed X.509, 10yr)
+- `pki.user.certificate` — Per-user certificates (encrypted with Odoo password, 1yr validity)
+- `pki.signing.config` — Configure which models need digital signing + which fields to hash
+- `pki.approval.rule` — Legacy approval rules (being superseded by AME)
+- `pki.signature.line` — Per-document signature records
 
-### Payment Consolidation (Inter-Company Clearing)
-1. Ministry of Education creates vendor bill and posts it
-2. Ministry of Finance (paying org) opens Payment Consolidation wizard
-3. Sets date range, clicks "Load Bills" — shows all unpaid bills across companies
-4. Selects bills, clicks "Create Payments"
-5. **Per bill's company**: clearing entry (DR Payable, CR Clearing) auto-reconciles → bill shows Paid
-6. **Paying company**: payment entry (DR Clearing, CR Bank) records disbursement
-7. All created entries shown in done state for review
-
-### Economic Segment Value → Account Sync
-1. Create/edit a `budget.segment.value` where `is_economic=True` and `is_last_level=True`
-2. Set `account_type` and other account fields
-3. On save, `_sync_account()` creates/updates linked `account.account` with `code=full_code`
+### Key Notes
+- Binary fields use `attachment=False` (stored in DB, not filestore)
+- `certificate_text` stored at generation time, not computed on read
+- Password validation uses `_crypt_context().verify_and_update()`
+- PDF signing hook: `ir.actions.report._render_qweb_pdf` override using CA certificate
 
 ---
 
 ## Development Notes
-- Odoo version: **19.0** (branch: `19.0`)
+- Odoo version: **19.0** (Community — app is "Invoicing" not "Accounting")
 - Database: `odoo19` (PostgreSQL, user: odoo, localhost:5432)
 - Remote: `origin` → `https://github.com/dejenedev/odoo.git`
 - Custom addons path: `custom_addons/`
-- Upgrade command: `python odoo-bin -c odoo.conf -d odoo19 -u budget_segment`
+- Upgrade command: `python odoo-bin -c odoo.conf -d odoo19 -u general_ledger`
+- Metabase BI at localhost:3000 (login: dejenegn@gmail.com)
 - `--dev=reload` only reloads Python, NOT XML. Always use `-u` after XML changes.
-- Hard refresh (Ctrl+Shift+R) needed after menu/view changes — browser caches menus.
-- `column_invisible="not parent.field"` does NOT work reliably in self-referencing one2many lists. Use separate form views instead.
-- Context keys prefixed with `default_` are auto-processed by Odoo to set fields. Use non-default prefixes for custom context keys.
-- When two form views exist for the same model, use `ir.actions.act_window.view` records to explicitly bind each action to its views.
-- `force_save="1"` on readonly fields in transient models may not persist values. Prefer making fields editable with pre-filled defaults.
-- `account.payment` in Odoo 19 uses `memo` field, NOT `ref`. The `ref` field does not exist on this model.
-- Cross-company payments: `account.payment` and `account.payment.register` enforce company consistency. Use inter-company clearing journal entries (`account.move`) instead of direct cross-company payments.
+- Hard refresh (Ctrl+Shift+R) needed after menu/view changes.
+- `account_accountant` module not available (Enterprise only) — menus under "Invoicing"
+- `xpath` cannot use `@string` as selector in Odoo 19 view inheritance
+- Odoo 19 uses `res.groups.privilege` pattern (not `category_id`) for Access Rights tab
+- `tracking_disable=True` context suppresses all mail tracking (stronger than `mail_notrack`)
+- `mail_notify_author=True` context forces notifying the message author (for self-notification testing)
+- Cross-company payments: Use inter-company clearing journal entries, not `account.payment`

@@ -122,19 +122,70 @@ class AccountMove(models.Model):
                     _("Cannot post journal entry '%s': lines with zero debit and credit are not allowed.")
                     % move.name
                 )
-            # Budget code mandatory for expense account lines
-            expense_lines = move.line_ids.filtered(
-                lambda l: l.account_id.account_type == 'expense'
-                and l.display_type not in ('line_section', 'line_note')
+            # Budget code mandatory for expense and revenue account lines
+            budget_required_lines = move.line_ids.filtered(
+                lambda l: l.account_id.account_type in ('expense', 'income', 'expense_direct_cost')
+                and l.display_type not in ('line_section', 'line_note', 'tax')
                 and not l.budget_combination_id
             )
-            if expense_lines:
-                accounts = ', '.join(expense_lines.mapped('account_id.display_name'))
+            if budget_required_lines:
+                accounts = ', '.join(budget_required_lines.mapped('account_id.display_name'))
                 raise UserError(_(
                     "Cannot post '%s': Budget Code Combination is required "
-                    "for expense account lines.\n\nMissing on: %s"
+                    "for expense and revenue account lines.\n\nMissing on: %s"
                 ) % (move.name, accounts))
-        return super().action_post()
+        res = super().action_post()
+        # Copy budget code from invoice lines to their tax lines
+        self._propagate_budget_code_to_tax_lines()
+        return res
+
+    def _propagate_budget_code_to_tax_lines(self):
+        """Propagate budget code and optionally account from invoice lines
+        to their related tax lines.
+
+        If the tax has 'override_account_from_bill' enabled:
+          - Tax line account is replaced with the invoice line's account
+          - Tax line gets the same budget code as the invoice line
+
+        Otherwise:
+          - Tax line gets the same budget code as the invoice line
+          - Tax line account stays as the tax's configured account
+        """
+        for move in self:
+            if not move.is_invoice(True):
+                continue
+            base_lines = move.line_ids.filtered(
+                lambda l: l.display_type == 'product' and l.budget_combination_id)
+            if not base_lines:
+                continue
+            tax_lines = move.line_ids.filtered(
+                lambda l: l.display_type == 'tax')
+            if not tax_lines:
+                continue
+
+            for tax_line in tax_lines:
+                tax = tax_line.tax_line_id
+                if not tax:
+                    matching_base = base_lines[0] if len(base_lines) == 1 else None
+                else:
+                    matching_bases = base_lines.filtered(lambda l: tax in l.tax_ids)
+                    matching_base = matching_bases[0] if matching_bases else (
+                        base_lines[0] if len(base_lines) == 1 else None)
+                if not matching_base:
+                    continue
+
+                vals = {
+                    'budget_combination_id': matching_base.budget_combination_id.id,
+                }
+
+                # If tax has override_account_from_bill, use invoice line's account
+                if tax and tax.override_account_from_bill:
+                    vals['account_id'] = matching_base.account_id.id
+
+                tax_line.with_context(
+                    skip_budget_propagation=True,
+                    check_move_validity=False,
+                ).write(vals)
 
     def button_cancel(self):
         for move in self:
@@ -144,6 +195,36 @@ class AccountMove(models.Model):
                     "Please cancel the approval first."
                 ) % move.name)
         return super().button_cancel()
+
+    def write(self, vals):
+        res = super().write(vals)
+        # Propagate budget codes to tax lines on save
+        if any(k in vals for k in ('invoice_line_ids', 'line_ids')):
+            self._propagate_budget_code_to_tax_lines()
+        return res
+
+    def action_submit_for_ame_approval(self):
+        """Override to validate budget codes before submitting for approval."""
+        # First propagate budget codes to tax lines
+        self._propagate_budget_code_to_tax_lines()
+
+        for move in self:
+            if move.is_invoice(True):
+                missing_lines = move.invoice_line_ids.filtered(
+                    lambda l: l.account_id.account_type in (
+                        'expense', 'income', 'expense_direct_cost')
+                    and l.display_type not in ('line_section', 'line_note')
+                    and not l.budget_combination_id
+                )
+                if missing_lines:
+                    accounts = ', '.join(
+                        missing_lines.mapped('account_id.display_name'))
+                    raise UserError(_(
+                        "Cannot submit for approval: Budget Code Combination "
+                        "is required for expense and revenue lines.\n\n"
+                        "Missing on: %s"
+                    ) % accounts)
+        return super().action_submit_for_ame_approval()
 
     def _on_ame_approved(self):
         """Callback when AME approval is complete — auto-post the bill."""
@@ -287,9 +368,25 @@ class AccountMoveLine(models.Model):
     @api.depends('account_id', 'company_id')
     def _compute_allowed_budget_combination_ids(self):
         for line in self:
-            domain = [('company_id', '=', line.company_id.id)]
+            if not line.company_id:
+                line.allowed_budget_combination_ids = False
+                continue
+
+            combo_ids = None  # None = not filtered yet
+
+            # 1. Filter by organization segment (always)
+            org = self.env['budget.organization'].search([
+                ('company_id', '=', line.company_id.id),
+            ], limit=1)
+            if org and org.segment_value_ids:
+                org_combo_lines = self.env['budget.code.combination.line'].search([
+                    ('segment_value_id', 'in', org.segment_value_ids.ids),
+                ])
+                org_combo_ids = set(org_combo_lines.mapped('combination_id').ids)
+                combo_ids = org_combo_ids
+
+            # 2. Filter by economic segment (match account)
             if line.account_id:
-                # Find economic segment value matching this account
                 eco_value = self.env['budget.segment.value'].search([
                     ('is_economic', '=', True),
                     ('account_id', '=', line.account_id.id),
@@ -302,21 +399,33 @@ class AccountMoveLine(models.Model):
                         ('is_last_level', '=', True),
                     ], limit=1)
                 if eco_value:
-                    # Only show combinations containing this economic value
-                    combo_lines = self.env['budget.code.combination.line'].search([
+                    eco_combo_lines = self.env['budget.code.combination.line'].search([
                         ('segment_value_id', '=', eco_value.id),
                     ])
-                    domain.append(('id', 'in', combo_lines.mapped('combination_id').ids))
-                    # Also filter by organization
-                    org = self.env['budget.organization'].search([
-                        ('company_id', '=', line.company_id.id),
-                    ], limit=1)
-                    if org and org.segment_value_ids:
-                        org_combo_lines = self.env['budget.code.combination.line'].search([
-                            ('segment_value_id', 'in', org.segment_value_ids.ids),
-                        ])
-                        domain.append(('id', 'in', org_combo_lines.mapped('combination_id').ids))
+                    eco_combo_ids = set(eco_combo_lines.mapped('combination_id').ids)
+                    # Intersect with org filter
+                    if combo_ids is not None:
+                        combo_ids = combo_ids & eco_combo_ids
+                    else:
+                        combo_ids = eco_combo_ids
+                else:
+                    # Account has no matching economic segment — no combinations
+                    combo_ids = set()
+
+            # 3. Apply company filter and return
+            domain = [('company_id', '=', line.company_id.id)]
+            if combo_ids is not None:
+                domain.append(('id', 'in', list(combo_ids)))
             line.allowed_budget_combination_ids = self.env['budget.code.combination'].search(domain)
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'budget_combination_id' in vals and not self.env.context.get('skip_budget_propagation'):
+            # Propagate to related tax lines via the move-level method
+            moves = self.mapped('move_id').filtered(lambda m: m.is_invoice(True))
+            if moves:
+                moves._propagate_budget_code_to_tax_lines()
+        return res
 
     def action_open_budget_wizard(self):
         """Open the budget code combination wizard for this journal item."""
